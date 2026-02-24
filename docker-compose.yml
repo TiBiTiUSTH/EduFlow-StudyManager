@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: eduflow_postgres
+    environment:
+      POSTGRES_DB: eduflow_db
+      POSTGRES_USER: eduflow_user
+      POSTGRES_PASSWORD: eduflow_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - eduflow-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U eduflow_user -d eduflow_db" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: eduflow_backend
+    environment:
+      DATABASE_URL: postgresql://eduflow_user:eduflow_pass@postgres:5432/eduflow_db
+      SECRET_KEY: ${SECRET_KEY:-yoursecretkeyhere_change_it_in_production}
+      ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 43200
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - eduflow-network
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: development
+    container_name: eduflow_frontend
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - eduflow-network
+    stdin_open: true
+    tty: true
+
+volumes:
+  postgres_data:
+
+
+networks:
+  eduflow-network:
+    driver: bridge
