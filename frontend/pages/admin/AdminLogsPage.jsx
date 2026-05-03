@@ -12,7 +12,7 @@ const AdminLogsPage = () => {
         setLoading(true);
         try {
             const token = localStorage.getItem('admin_token');
-            const res = await axios.get('http://127.0.0.1:8000/stms/admin/logs', {
+            const res = await axios.get('/stms/admin/logs', {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setLogs(res.data);

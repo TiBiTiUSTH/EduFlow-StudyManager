@@ -44,10 +44,10 @@ const AdminDashboard = () => {
             const headers = { Authorization: `Bearer ${token}` };
 
             const [statsRes, healthRes, logsRes, settingsRes] = await Promise.all([
-                axios.get('http://127.0.0.1:8000/stms/admin/stats', { headers }),
-                axios.get('http://127.0.0.1:8000/stms/admin/system-health', { headers }),
-                axios.get('http://127.0.0.1:8000/stms/admin/logs', { headers }),
-                axios.get('http://127.0.0.1:8000/stms/admin/settings', { headers })
+                axios.get('/stms/admin/stats', { headers }),
+                axios.get('/stms/admin/system-health', { headers }),
+                axios.get('/stms/admin/logs', { headers }),
+                axios.get('/stms/admin/settings', { headers })
             ]);
 
             setStats(statsRes.data);
@@ -79,7 +79,7 @@ const AdminDashboard = () => {
     const handleCleanDB = async () => {
         try {
             const token = localStorage.getItem('admin_token');
-            const res = await axios.post('http://127.0.0.1:8000/stms/admin/cleanup', {}, {
+            const res = await axios.post('/stms/admin/cleanup', {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             addToast(res.data.message, 'success');
@@ -93,10 +93,10 @@ const AdminDashboard = () => {
             const token = localStorage.getItem('admin_token');
             const headers = { Authorization: `Bearer ${token}` };
 
-            const settingsRes = await axios.get('http://127.0.0.1:8000/stms/admin/settings', { headers });
+            const settingsRes = await axios.get('/stms/admin/settings', { headers });
             const newSettings = { ...settingsRes.data, [key]: !currentValue };
 
-            await axios.post('http://127.0.0.1:8000/stms/admin/settings', newSettings, { headers });
+            await axios.post('/stms/admin/settings', newSettings, { headers });
 
             if (key === 'auto_scan') setAutoScan(!currentValue);
             if (key === 'maintenance_mode') setMaintenance(!currentValue);

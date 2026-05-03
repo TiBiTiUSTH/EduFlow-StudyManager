@@ -18,7 +18,7 @@ const AdminSettingsPage = () => {
         const fetchSettings = async () => {
             try {
                 const token = localStorage.getItem('admin_token');
-                const res = await axios.get('http://127.0.0.1:8000/stms/admin/settings', {
+                const res = await axios.get('/stms/admin/settings', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 setSettings({
@@ -42,11 +42,11 @@ const AdminSettingsPage = () => {
     const handleSave = async () => {
         try {
             const token = localStorage.getItem('admin_token');
-            const curRes = await axios.get('http://127.0.0.1:8000/stms/admin/settings', {
+            const curRes = await axios.get('/stms/admin/settings', {
                 headers: { Authorization: `Bearer ${token}` }
             });
             const merged = { ...curRes.data, ...settings };
-            await axios.post('http://127.0.0.1:8000/stms/admin/settings', merged, {
+            await axios.post('/stms/admin/settings', merged, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             addToast('Cấu hình hệ thống đã được lưu thành công!', 'success', 4000);

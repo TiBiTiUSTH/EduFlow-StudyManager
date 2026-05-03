@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import ConfirmDialog from '../../components/UI/ConfirmDialog';
 import { useToast } from '../../components/UI/Toast';
 
-const API = 'http://127.0.0.1:8000';
+const API = '';
 
 const PALETTE = [
     '#3b82f6', '#8b5cf6', '#10b981', '#f59e0b',

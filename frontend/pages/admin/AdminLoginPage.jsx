@@ -28,7 +28,7 @@ const AdminLoginPage = () => {
             formData.append('username', username.trim());
             formData.append('password', password);
 
-            const response = await axios.post('http://127.0.0.1:8000/stms/auth/login', formData);
+            const response = await axios.post('/stms/auth/login', formData);
             const { access_token, roles } = response.data;
 
             if (!roles.includes('admin')) {

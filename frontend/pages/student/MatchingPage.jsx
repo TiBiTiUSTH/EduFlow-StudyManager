@@ -22,7 +22,7 @@ const MatchingPage = () => {
         try {
             const config = { headers: { Authorization: `Bearer ${token}` } };
             // Fetch từ proxy matching trong backend
-            const res = await axios.get('http://127.0.0.1:8000/matching/suggestions', config);
+            const res = await axios.get('/matching/suggestions', config);
             setSuggestions(res.data);
             setCurrentIndex(0);
         } catch (error) {
@@ -51,7 +51,7 @@ const MatchingPage = () => {
     const sendBuddyRequest = async (targetId) => {
         try {
             const config = { headers: { Authorization: `Bearer ${token}` } };
-            await axios.post(`http://127.0.0.1:8000/api/buddies/request/${targetId}`, null, {
+            await axios.post(`/api/buddies/request/${targetId}`, null, {
                 headers: { Authorization: `Bearer ${token}` },
                 params: {
                     sender_id: user.id,

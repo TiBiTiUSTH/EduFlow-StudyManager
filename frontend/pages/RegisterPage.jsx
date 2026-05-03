@@ -46,7 +46,7 @@ const RegisterPage = () => {
         setError('');
 
         try {
-            await axios.post('http://127.0.0.1:8000/stms/auth/register', formData);
+            await axios.post('/stms/auth/register', formData);
             setStep(2);
             setSuccess('Mã OTP đã được gửi về email của bạn!');
         } catch (err) {
@@ -62,7 +62,7 @@ const RegisterPage = () => {
         setError('');
 
         try {
-            await axios.post('http://127.0.0.1:8000/stms/auth/verify-otp', {
+            await axios.post('/stms/auth/verify-otp', {
                 username: formData.username,
                 otp_code: otpCode
             });

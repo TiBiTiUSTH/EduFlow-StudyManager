@@ -3,7 +3,7 @@ import { Send, Bot, User, Paperclip, Loader2, FileText, X, Trash2, Plus, Message
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 
-const API = 'http://127.0.0.1:8000';
+const API = '';
 
 const AIPage = () => {
     const [threads, setThreads] = useState([]);

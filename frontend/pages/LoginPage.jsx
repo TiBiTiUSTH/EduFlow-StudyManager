@@ -47,7 +47,7 @@ const LoginPage = () => {
             formData.append('username', username.trim());
             formData.append('password', password);
 
-            const response = await axios.post('http://127.0.0.1:8000/stms/auth/login', formData);
+            const response = await axios.post('/stms/auth/login', formData);
             const { access_token, roles } = response.data;
 
             if (roles.includes('admin') || roles.includes('parent')) {
@@ -87,7 +87,7 @@ const LoginPage = () => {
         e.preventDefault();
         setLoading(true); setError(''); setForgotSuccess('');
         try {
-            await axios.post('http://127.0.0.1:8000/stms/auth/forgot-password', { email: forgotEmail });
+            await axios.post('/stms/auth/forgot-password', { email: forgotEmail });
             setForgotStep(2);
             setForgotSuccess('Mã OTP đã được gửi đến email của bạn!');
         } catch (err) {
@@ -101,7 +101,7 @@ const LoginPage = () => {
         e.preventDefault();
         setLoading(true); setError(''); setForgotSuccess('');
         try {
-            await axios.post('http://127.0.0.1:8000/stms/auth/reset-password', {
+            await axios.post('/stms/auth/reset-password', {
                 email: forgotEmail,
                 otp_code: forgotOtp,
                 new_password: forgotNewPassword

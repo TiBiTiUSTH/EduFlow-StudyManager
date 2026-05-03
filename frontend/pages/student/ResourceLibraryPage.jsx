@@ -4,7 +4,7 @@ import { Upload, FileText, Download, Trash2, Search, Filter, X, FolderOpen, File
 import { useAuth } from '@/contexts/AuthContext';
 import axios from 'axios';
 
-const API = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+const API = import.meta.env.VITE_API_URL || '';
 
 const CATEGORIES = ['Tất cả', 'Toán học', 'Vật Lý', 'Hóa học', 'Sinh học', 'Ngữ Văn', 'Tiếng Anh', 'Tin học'];
 const GRADES = ['Tất cả', 'Cấp 1', 'Cấp 2', 'Cấp 3', 'Đại học'];
