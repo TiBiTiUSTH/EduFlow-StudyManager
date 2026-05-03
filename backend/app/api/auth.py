@@ -38,9 +38,13 @@ class ResetPasswordRequest(BaseModel):
     otp_code: str
     new_password: str
 
+from sqlalchemy import or_
+
 @router.post("/login", response_model=Token)
 async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.username == form_data.username).first()
+    user = db.query(User).filter(
+        or_(User.username == form_data.username, User.email == form_data.username)
+    ).first()
     if not user or not verify_password(form_data.password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -81,8 +85,12 @@ async def register(req: RegisterRequest, background_tasks: BackgroundTasks, db: 
     if not role or req.role not in ['student']:
         raise HTTPException(status_code=400, detail="Invalid role selection")
 
-    # Tạo OTP
-    otp = ''.join(random.choices(string.digits, k=6))
+    import os
+    # Tạo OTP (Dùng 123456 cho demo nếu chưa cài email)
+    if os.getenv("SMTP_HOST"):
+        otp = ''.join(random.choices(string.digits, k=6))
+    else:
+        otp = "123456"
     
     # Tạo User
     new_user = User(
@@ -132,8 +140,12 @@ async def forgot_password(req: ForgotPasswordRequest, background_tasks: Backgrou
     if not user:
         raise HTTPException(status_code=404, detail="Email không tồn tại trong hệ thống")
     
+    import os
     # Tạo OTP
-    otp = ''.join(random.choices(string.digits, k=6))
+    if os.getenv("SMTP_HOST"):
+        otp = ''.join(random.choices(string.digits, k=6))
+    else:
+        otp = "123456"
     user.otp_code = otp
     db.commit()
     

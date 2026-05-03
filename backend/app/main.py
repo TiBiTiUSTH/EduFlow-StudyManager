@@ -13,6 +13,23 @@ for _ in range(5):
     try:
         Base.metadata.create_all(bind=engine)
         print("Database tables created successfully")
+        
+        # Seed default roles
+        from .database import SessionLocal
+        from .models.models import Role
+        db = SessionLocal()
+        try:
+            if not db.query(Role).first():
+                db.add_all([
+                    Role(role_name="admin", description="Administrator"),
+                    Role(role_name="parent", description="Parent"),
+                    Role(role_name="student", description="Student")
+                ])
+                db.commit()
+                print("Default roles seeded.")
+        finally:
+            db.close()
+            
         break
     except Exception as e:
         print(f"Waiting for database to be ready... {e}")
