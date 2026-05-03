@@ -4,6 +4,11 @@ from .api import auth, subjects, tasks, schedules, notifications, users, pomodor
 from .api.websocket import manager
 from .api import community, buddies, dm, resources, video_signaling, matching
 import json
+from .database import engine, Base
+from .models import models  # Ensure models are loaded before creation
+
+# Auto-create tables
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="EduFlow STMS API")
 

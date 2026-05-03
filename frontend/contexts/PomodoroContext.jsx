@@ -8,7 +8,7 @@ const PomodoroContext = createContext();
 
 export const usePomodoro = () => useContext(PomodoroContext);
 
-const API = 'http://127.0.0.1:8000';
+const API = '';
 const DEFAULT_SOUND = '/sounds/pomodoro.mp3';
 
 // Helper to get pending tasks for Pomodoro sync
@@ -330,3 +330,4 @@ export const PomodoroProvider = ({ children }) => {
         </PomodoroContext.Provider>
     );
 };
+

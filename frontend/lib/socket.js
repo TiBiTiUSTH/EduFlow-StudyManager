@@ -2,7 +2,7 @@
  Quản lý kết nối real-time: Chat, Notifications, Room updates
  */
 
-const WS_BASE = import.meta.env.VITE_WS_URL || 'ws://127.0.0.1:8000';
+const WS_BASE = import.meta.env.VITE_WS_URL || ((window.location.protocol === 'https:' ? 'wss://' : 'ws://') + window.location.host);
 
 class EduFlowSocket {
   constructor() {

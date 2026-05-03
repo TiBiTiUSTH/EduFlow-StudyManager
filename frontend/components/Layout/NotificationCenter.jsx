@@ -5,7 +5,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import socket from '../../lib/socket';
 
-const API = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+const API = import.meta.env.VITE_API_URL || '';
 
 const NotificationCenter = ({ isOpen, onClose }) => {
     const navigate = useNavigate();
@@ -213,3 +213,4 @@ const NotificationCenter = ({ isOpen, onClose }) => {
 };
 
 export default NotificationCenter;
+

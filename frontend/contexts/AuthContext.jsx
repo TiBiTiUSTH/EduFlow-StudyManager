@@ -6,7 +6,7 @@ export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    const API = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+    const API = import.meta.env.VITE_API_URL || '';
 
     const login = (userData) => setUser(userData);
     const logout = () => {
@@ -46,3 +46,4 @@ export const useAuth = () => {
     const context = useContext(AuthContext);
     return context || {};
 };
+

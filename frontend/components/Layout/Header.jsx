@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { usePomodoro } from '../../contexts/PomodoroContext';
 import { useTheme } from '../../contexts/ThemeContext';
 
-const API = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+const API = import.meta.env.VITE_API_URL || '';
 
 const Header = () => {
     const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
@@ -228,3 +228,4 @@ const Header = () => {
 };
 
 export default Header;
+
