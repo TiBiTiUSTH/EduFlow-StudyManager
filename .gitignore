@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Node
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# macOS/Windows
+.DS_Store
+Thumbs.db
+
+# Project specifics
+backend/uploads/
+backend/ml_engine/task_model.pkl
+backend/app/ai/toxic_model.pkl
+backend/alembic/versions/*.pyc
+
+# IDEs
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

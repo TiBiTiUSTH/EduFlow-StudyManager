@@ -1,0 +1,9 @@
+{
+    "smtp_host": "smtp.eduflow.io",
+    "smtp_port": "587",
+    "db_pool_size": "20",
+    "cache_ttl": "3600",
+    "max_upload_size": "50",
+    "maintenance_mode": false,
+    "auto_scan": true
+}

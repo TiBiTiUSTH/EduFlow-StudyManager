@@ -1,0 +1,624 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --color-primary-50: #eff6ff;
+  --color-primary-100: #dbeafe;
+  --color-primary-200: #bfdbfe;
+  --color-primary-300: #93c5fd;
+  --color-primary-400: #60a5fa;
+  --color-primary-500: #3b82f6;
+  --color-primary-600: #2563eb;
+  --color-primary-700: #1d4ed8;
+  --color-primary-800: #1e40af;
+  --color-primary-900: #1e3a8a;
+}
+
+/* Biến CSS */
+:root {
+  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  --edu-bg: #f8fafc;
+  --edu-card: #ffffff;
+  --edu-card-80: rgba(255, 255, 255, 0.8);
+  --edu-input: #f1f5f9;
+  --edu-border: #e2e8f0;
+  --edu-border-light: #f1f5f9;
+  --edu-text: #0f172a;
+  --edu-text-secondary: #475569;
+  --edu-text-muted: #64748b;
+  --edu-hover: #f8fafc;
+}
+
+.dark {
+  --edu-bg: #020617;
+  --edu-card: #0f172a;
+  --edu-card-80: rgba(15, 23, 42, 0.85);
+  --edu-input: #1e293b;
+  --edu-border: #334155;
+  --edu-border-light: #1e293b;
+  --edu-text: #f1f5f9;
+  --edu-text-secondary: #94a3b8;
+  --edu-text-muted: #64748b;
+  --edu-hover: #1e293b;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: var(--edu-bg);
+  color: var(--edu-text);
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px #f8fafc inset !important;
+  -webkit-text-fill-color: #0f172a !important;
+  color: #0f172a !important;
+  caret-color: #0f172a !important;
+}
+
+.dark input:-webkit-autofill,
+.dark input:-webkit-autofill:hover,
+.dark input:-webkit-autofill:focus,
+.dark input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px #1e293b inset !important;
+  -webkit-text-fill-color: #f1f5f9 !important;
+  color: #f1f5f9 !important;
+  caret-color: #f1f5f9 !important;
+}
+
+option {
+  color: #0f172a;
+  background: #ffffff;
+}
+
+.dark option {
+  color: #f1f5f9;
+  background: #1e293b;
+}
+
+input::placeholder,
+textarea::placeholder {
+  @apply text-slate-400 dark:text-slate-500;
+}
+
+
+
+/* hiển thị ở chế độ tối */
+.dark input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]),
+.dark textarea,
+.dark select {
+  background-color: var(--edu-input) !important;
+  color: var(--edu-text) !important;
+  border-color: var(--edu-border) !important;
+}
+
+.dark label {
+  color: var(--edu-text-secondary);
+}
+
+.dark .bg-indigo-50\/50,
+.dark .bg-indigo-50 {
+  background-color: rgba(99, 102, 241, 0.08) !important;
+}
+
+.dark .bg-emerald-50,
+.dark .bg-emerald-50\/30 {
+  background-color: rgba(16, 185, 129, 0.08) !important;
+}
+
+.dark .bg-amber-50 {
+  background-color: rgba(245, 158, 11, 0.08) !important;
+}
+
+.dark .bg-rose-50,
+.dark .bg-red-50 {
+  background-color: rgba(239, 68, 68, 0.08) !important;
+}
+
+.dark .bg-blue-50 {
+  background-color: rgba(59, 130, 246, 0.08) !important;
+}
+
+.dark .text-indigo-900,
+.dark .text-indigo-800 {
+  color: #a5b4fc !important;
+}
+
+.dark .text-emerald-700:not(.dark\:text-emerald-400) {
+  color: #6ee7b7 !important;
+}
+
+.dark .text-amber-700:not(.dark\:text-amber-400) {
+  color: #fcd34d !important;
+}
+
+.dark .border-indigo-100,
+.dark .border-indigo-50,
+.dark .border-emerald-100,
+.dark .border-amber-100 {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Màu xanh */
+.dark .prose .bg-blue-50 {
+  background-color: rgba(59, 130, 246, 0.08) !important;
+}
+
+.dark .prose .bg-blue-100 {
+  background-color: rgba(59, 130, 246, 0.15) !important;
+}
+
+.dark .prose .bg-blue-200 {
+  background-color: rgba(59, 130, 246, 0.22) !important;
+}
+
+.dark .prose .text-blue-600 {
+  color: #93c5fd !important;
+}
+
+.dark .prose .text-blue-700 {
+  color: #93c5fd !important;
+}
+
+.dark .prose .text-blue-800 {
+  color: #bfdbfe !important;
+}
+
+.dark .prose .border-blue-200 {
+  border-color: rgba(59, 130, 246, 0.3) !important;
+}
+
+.dark .prose .border-blue-300 {
+  border-color: rgba(59, 130, 246, 0.35) !important;
+}
+
+.dark .prose .border-blue-400 {
+  border-color: rgba(59, 130, 246, 0.4) !important;
+}
+
+/* Lục */
+.dark .prose .bg-green-50 {
+  background-color: rgba(16, 185, 129, 0.08) !important;
+}
+
+.dark .prose .bg-green-100 {
+  background-color: rgba(16, 185, 129, 0.15) !important;
+}
+
+.dark .prose .bg-green-200 {
+  background-color: rgba(16, 185, 129, 0.22) !important;
+}
+
+.dark .prose .text-green-600 {
+  color: #86efac !important;
+}
+
+.dark .prose .text-green-700 {
+  color: #86efac !important;
+}
+
+.dark .prose .text-green-800 {
+  color: #bbf7d0 !important;
+}
+
+.dark .prose .border-green-200 {
+  border-color: rgba(16, 185, 129, 0.3) !important;
+}
+
+.dark .prose .border-green-300 {
+  border-color: rgba(16, 185, 129, 0.35) !important;
+}
+
+.dark .prose .border-green-400 {
+  border-color: rgba(16, 185, 129, 0.4) !important;
+}
+
+.dark .prose .border-green-500 {
+  border-color: rgba(16, 185, 129, 0.5) !important;
+}
+
+/* Vàng */
+.dark .prose .bg-amber-50 {
+  background-color: rgba(245, 158, 11, 0.08) !important;
+}
+
+.dark .prose .bg-amber-100 {
+  background-color: rgba(245, 158, 11, 0.15) !important;
+}
+
+.dark .prose .bg-amber-200 {
+  background-color: rgba(245, 158, 11, 0.22) !important;
+}
+
+.dark .prose .text-amber-600 {
+  color: #fcd34d !important;
+}
+
+.dark .prose .text-amber-700 {
+  color: #fcd34d !important;
+}
+
+.dark .prose .text-amber-800 {
+  color: #fde68a !important;
+}
+
+.dark .prose .border-amber-200 {
+  border-color: rgba(245, 158, 11, 0.3) !important;
+}
+
+.dark .prose .border-amber-300 {
+  border-color: rgba(245, 158, 11, 0.35) !important;
+}
+
+.dark .prose .border-amber-400 {
+  border-color: rgba(245, 158, 11, 0.4) !important;
+}
+
+/* Đỏ */
+.dark .prose .bg-rose-50 {
+  background-color: rgba(244, 63, 94, 0.08) !important;
+}
+
+.dark .prose .bg-rose-100 {
+  background-color: rgba(244, 63, 94, 0.15) !important;
+}
+
+.dark .prose .bg-rose-200 {
+  background-color: rgba(244, 63, 94, 0.22) !important;
+}
+
+.dark .prose .text-rose-600 {
+  color: #fda4af !important;
+}
+
+.dark .prose .text-rose-700 {
+  color: #fda4af !important;
+}
+
+.dark .prose .text-rose-800 {
+  color: #fecdd3 !important;
+}
+
+.dark .prose .border-rose-200 {
+  border-color: rgba(244, 63, 94, 0.3) !important;
+}
+
+.dark .prose .border-rose-300 {
+  border-color: rgba(244, 63, 94, 0.35) !important;
+}
+
+.dark .prose .border-rose-500 {
+  border-color: rgba(244, 63, 94, 0.5) !important;
+}
+
+/* Tím */
+.dark .prose .bg-purple-50 {
+  background-color: rgba(168, 85, 247, 0.08) !important;
+}
+
+.dark .prose .bg-purple-100 {
+  background-color: rgba(168, 85, 247, 0.15) !important;
+}
+
+.dark .prose .bg-purple-200 {
+  background-color: rgba(168, 85, 247, 0.22) !important;
+}
+
+.dark .prose .text-purple-600 {
+  color: #d8b4fe !important;
+}
+
+.dark .prose .text-purple-700 {
+  color: #d8b4fe !important;
+}
+
+.dark .prose .text-purple-800 {
+  color: #e9d5ff !important;
+}
+
+.dark .prose .border-purple-200 {
+  border-color: rgba(168, 85, 247, 0.3) !important;
+}
+
+.dark .prose .border-purple-400 {
+  border-color: rgba(168, 85, 247, 0.4) !important;
+}
+
+/* Xanh ngọc */
+.dark .prose .bg-cyan-50 {
+  background-color: rgba(6, 182, 212, 0.08) !important;
+}
+
+.dark .prose .bg-cyan-100 {
+  background-color: rgba(6, 182, 212, 0.15) !important;
+}
+
+.dark .prose .text-cyan-600 {
+  color: #67e8f9 !important;
+}
+
+.dark .prose .text-cyan-700 {
+  color: #67e8f9 !important;
+}
+
+/* Vàng chanh */
+.dark .prose .bg-yellow-50 {
+  background-color: rgba(234, 179, 8, 0.08) !important;
+}
+
+.dark .prose .bg-yellow-100 {
+  background-color: rgba(234, 179, 8, 0.15) !important;
+}
+
+.dark .prose .text-yellow-700 {
+  color: #fde68a !important;
+}
+
+.dark .prose .text-yellow-800 {
+  color: #fde68a !important;
+}
+
+.dark .prose .border-yellow-400 {
+  border-color: rgba(234, 179, 8, 0.4) !important;
+}
+
+/* Cam */
+.dark .prose .bg-orange-50 {
+  background-color: rgba(249, 115, 22, 0.08) !important;
+}
+
+.dark .prose .bg-orange-100 {
+  background-color: rgba(249, 115, 22, 0.15) !important;
+}
+
+.dark .prose .text-orange-600 {
+  color: #fdba74 !important;
+}
+
+.dark .prose .text-orange-700 {
+  color: #fdba74 !important;
+}
+
+/* Đỏ */
+.dark .prose .bg-red-50 {
+  background-color: rgba(239, 68, 68, 0.08) !important;
+}
+
+.dark .prose .bg-red-100 {
+  background-color: rgba(239, 68, 68, 0.15) !important;
+}
+
+.dark .prose .text-red-600 {
+  color: #fca5a5 !important;
+}
+
+.dark .prose .text-red-700 {
+  color: #fca5a5 !important;
+}
+
+.dark .prose .border-red-200 {
+  border-color: rgba(239, 68, 68, 0.3) !important;
+}
+
+/* Xanh dương */
+.dark .prose .bg-indigo-50 {
+  background-color: rgba(99, 102, 241, 0.08) !important;
+}
+
+.dark .prose .bg-indigo-100 {
+  background-color: rgba(99, 102, 241, 0.15) !important;
+}
+
+.dark .prose .text-indigo-700 {
+  color: #a5b4fc !important;
+}
+
+.dark .prose .text-indigo-800 {
+  color: #a5b4fc !important;
+}
+
+.dark .prose .border-indigo-200 {
+  border-color: rgba(99, 102, 241, 0.3) !important;
+}
+
+/* Xanh mòng két */
+.dark .prose .bg-teal-50 {
+  background-color: rgba(20, 184, 166, 0.08) !important;
+}
+
+.dark .prose .bg-teal-100 {
+  background-color: rgba(20, 184, 166, 0.15) !important;
+}
+
+.dark .prose .text-teal-700 {
+  color: #5eead4 !important;
+}
+
+/* Hồng */
+.dark .prose .bg-pink-50 {
+  background-color: rgba(236, 72, 153, 0.08) !important;
+}
+
+.dark .prose .bg-pink-100 {
+  background-color: rgba(236, 72, 153, 0.15) !important;
+}
+
+.dark .prose .text-pink-700 {
+  color: #f9a8d4 !important;
+}
+
+.dark .prose .text-pink-800 {
+  color: #fbcfe8 !important;
+}
+
+/* Xám */
+.dark .prose .bg-slate-50 {
+  background-color: rgba(148, 163, 184, 0.06) !important;
+}
+
+.dark .prose .bg-slate-100 {
+  background-color: rgba(148, 163, 184, 0.10) !important;
+}
+
+.dark .prose .bg-slate-200 {
+  background-color: rgba(148, 163, 184, 0.15) !important;
+}
+
+.dark .prose .bg-gray-50 {
+  background-color: rgba(148, 163, 184, 0.06) !important;
+}
+
+.dark .prose .bg-gray-100 {
+  background-color: rgba(148, 163, 184, 0.10) !important;
+}
+
+.dark .prose .bg-gray-200 {
+  background-color: rgba(148, 163, 184, 0.15) !important;
+}
+
+.dark .prose .bg-white {
+  background-color: rgba(30, 41, 59, 0.7) !important;
+}
+
+/* Neutral text */
+.dark .prose .text-slate-500 {
+  color: #94a3b8 !important;
+}
+
+.dark .prose .text-slate-600 {
+  color: #cbd5e1 !important;
+}
+
+.dark .prose .text-slate-700 {
+  color: #cbd5e1 !important;
+}
+
+.dark .prose .text-slate-800 {
+  color: #e2e8f0 !important;
+}
+
+.dark .prose .text-slate-900 {
+  color: #f1f5f9 !important;
+}
+
+.dark .prose .text-gray-500 {
+  color: #94a3b8 !important;
+}
+
+.dark .prose .text-gray-600 {
+  color: #cbd5e1 !important;
+}
+
+.dark .prose .text-gray-700 {
+  color: #cbd5e1 !important;
+}
+
+.dark .prose .text-gray-800 {
+  color: #e2e8f0 !important;
+}
+
+/* Neutral borders */
+.dark .prose .border-slate-200 {
+  border-color: rgba(148, 163, 184, 0.2) !important;
+}
+
+.dark .prose .border-slate-300 {
+  border-color: rgba(148, 163, 184, 0.25) !important;
+}
+
+/* Bảng trong nội dung bài học */
+.dark .prose tr.bg-blue-100,
+.dark .prose tr.bg-purple-100,
+.dark .prose tr.bg-green-100,
+.dark .prose tr.bg-amber-100,
+.dark .prose tr.bg-slate-100 {
+  background-color: rgba(148, 163, 184, 0.12) !important;
+}
+
+.dark .prose tr.bg-blue-100 {
+  background-color: rgba(59, 130, 246, 0.12) !important;
+}
+
+.dark .prose tr.bg-purple-100 {
+  background-color: rgba(168, 85, 247, 0.12) !important;
+}
+
+.dark .prose tr.bg-green-100 {
+  background-color: rgba(16, 185, 129, 0.12) !important;
+}
+
+.dark .prose tr.bg-slate-50 {
+  background-color: rgba(148, 163, 184, 0.06) !important;
+}
+
+.dark .prose th.border,
+.dark .prose td.border {
+  border-color: var(--edu-border) !important;
+  color: var(--edu-text) !important;
+}
+
+/* Chỉnh bóng */
+.dark .prose .shadow-sm {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Bảng trong nội dung bài học */
+.prose table {
+  @apply w-full text-sm text-left text-slate-700 dark:text-slate-300 border-collapse border border-slate-200 dark:border-slate-800 my-4 rounded-lg overflow-hidden transition-colors;
+}
+
+.prose thead {
+  @apply text-xs bg-slate-100 dark:bg-slate-900 uppercase tracking-wider text-slate-600 dark:text-slate-400 transition-colors;
+}
+
+.prose th {
+  @apply px-4 py-3 border border-slate-200 dark:border-slate-800 font-bold transition-colors;
+}
+
+.prose td {
+  @apply px-4 py-2 border border-slate-200 dark:border-slate-800 transition-colors;
+}
+
+.prose tbody tr:nth-child(even) {
+  @apply bg-slate-50/50 dark:bg-slate-900/50 transition-colors;
+}
+
+.prose tbody tr:hover {
+  @apply bg-slate-50 dark:bg-slate-900 transition-colors;
+}
+
+/* thanh cuộn */
+
+*:not(video):not(canvas):not(iframe) {
+  transition: color 0.2s, background-color 0.2s, border-color 0.2s;
+}
+
+.transition-all,
+[class*="animate-"],
+[class*="motion-"] {
+  transition-property: all;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-300 dark:bg-slate-700 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-slate-400 dark:bg-slate-600;
+}
