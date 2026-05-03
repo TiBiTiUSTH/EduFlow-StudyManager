@@ -1,14 +1,22 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from .api import auth, subjects, tasks, schedules, notifications, users, pomodoros, ai, chat, room, ml, admin
+from .api import auth, subjects, tasks, schedules, notifications, users, pomodoros, ai, chat, room, admin
 from .api.websocket import manager
 from .api import community, buddies, dm, resources, video_signaling, matching
 import json
 from .database import engine, Base
 from .models import models  # Ensure models are loaded before creation
+import time
 
-# Auto-create tables
-Base.metadata.create_all(bind=engine)
+# Auto-create tables (with retry logic for slow DB startup)
+for _ in range(5):
+    try:
+        Base.metadata.create_all(bind=engine)
+        print("Database tables created successfully")
+        break
+    except Exception as e:
+        print(f"Waiting for database to be ready... {e}")
+        time.sleep(2)
 
 app = FastAPI(title="EduFlow STMS API")
 
@@ -38,7 +46,6 @@ app.include_router(dm.router)
 app.include_router(resources.router)
 app.include_router(video_signaling.router)
 app.include_router(matching.router)
-app.include_router(ml.router)
 app.include_router(admin.router)
 
 import os
