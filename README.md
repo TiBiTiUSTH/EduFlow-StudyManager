@@ -4,7 +4,7 @@ A comprehensive web-based study time management system for students built with *
 
 ## 🚀 Features
 
-- ✅ **Role-Based Access Control** - Admin, Parent, Student dashboards
+- ✅ **Role-Based Access Control** - Admin, Student dashboards
 - ✅ **Task Management** - Create, track, and prioritize study tasks
 - ✅ **Study Schedules** - Plan weekly study sessions
 - ✅ **Progress Tracking** - Monitor study progress and completion rates
@@ -234,10 +234,7 @@ npm run build
 - System configuration
 - View all tasks and schedules
 
-### Parent
-- Monitor student progress
-- View student tasks
-- Receive notifications
+
 
 ### Student
 - Create and manage tasks
