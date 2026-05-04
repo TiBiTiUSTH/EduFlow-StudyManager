@@ -85,36 +85,43 @@ async def register(req: RegisterRequest, background_tasks: BackgroundTasks, db: 
     if not role or req.role not in ['student']:
         raise HTTPException(status_code=400, detail="Invalid role selection")
 
-    # Tạo OTP
-    otp = ''.join(random.choices(string.digits, k=6))
-    
-    # Tạo User
-    new_user = User(
-        username=req.username,
-        email=req.email,
-        password_hash=get_password_hash(req.password),
-        full_name=req.full_name,
-        otp_code=otp,
-        is_verified=False
-    )
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-
-    # Gán Role
-    user_role = UserRole(user_id=new_user.id, role_id=role.id)
-    db.add(user_role)
-    db.commit()
-
-    # Gọi Background Task để gửi OTP qua FastAPI
     try:
-        from ..worker import send_otp_email
-        background_tasks.add_task(send_otp_email, req.email, otp)
-        print(f"DEBUG: Added OTP task to FastAPI Background tasks for {req.username}: {otp}")
-    except Exception as e:
-        print(f"WARNING: Task add failed: {e}")
+        # Tạo OTP
+        otp = ''.join(random.choices(string.digits, k=6))
+        
+        # Tạo User
+        new_user = User(
+            username=req.username,
+            email=req.email,
+            password_hash=get_password_hash(req.password),
+            full_name=req.full_name,
+            otp_code=otp,
+            is_verified=False
+        )
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
 
-    return {"message": "Registration successful. Please verify OTP.", "username": req.username}
+        # Gán Role
+        user_role = UserRole(user_id=new_user.id, role_id=role.id)
+        db.add(user_role)
+        db.commit()
+
+        # Gọi Background Task để gửi OTP qua FastAPI
+        try:
+            from ..worker import send_otp_email
+            background_tasks.add_task(send_otp_email, req.email, otp)
+            print(f"DEBUG: Added OTP task to FastAPI Background tasks for {req.username}: {otp}")
+        except Exception as e:
+            print(f"WARNING: Task add failed: {e}")
+
+        return {"message": "Registration successful. Please verify OTP.", "username": req.username}
+    except Exception as e:
+        import traceback
+        err_msg = str(e)
+        if "IntegrityError" in err_msg or "null value in column" in err_msg:
+            err_msg = "Database Constraint Error: " + err_msg
+        raise HTTPException(status_code=500, detail=f"Lỗi: {err_msg} | TRACE: {traceback.format_exc()}")
 
 @router.post("/verify-otp")
 async def verify_otp(req: VerifyOTPRequest, db: Session = Depends(get_db)):
