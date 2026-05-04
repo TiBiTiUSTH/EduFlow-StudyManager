@@ -141,7 +141,7 @@ async def upload_avatar(
         await file.close()
 
     # Cập nhật database
-    avatar_url = f"http://127.0.0.1:8000/uploads/avatars/{unique_filename}"
+    avatar_url = f"/uploads/avatars/{unique_filename}"
     current_user.avatar_url = avatar_url
     db.commit()
     db.refresh(current_user)
