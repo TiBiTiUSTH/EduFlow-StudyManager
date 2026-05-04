@@ -85,12 +85,8 @@ async def register(req: RegisterRequest, background_tasks: BackgroundTasks, db: 
     if not role or req.role not in ['student']:
         raise HTTPException(status_code=400, detail="Invalid role selection")
 
-    import os
-    # Tạo OTP (Dùng 123456 cho demo nếu chưa cài email)
-    if os.getenv("SMTP_HOST"):
-        otp = ''.join(random.choices(string.digits, k=6))
-    else:
-        otp = "123456"
+    # Tạo OTP
+    otp = ''.join(random.choices(string.digits, k=6))
     
     # Tạo User
     new_user = User(
@@ -140,12 +136,8 @@ async def forgot_password(req: ForgotPasswordRequest, background_tasks: Backgrou
     if not user:
         raise HTTPException(status_code=404, detail="Email không tồn tại trong hệ thống")
     
-    import os
     # Tạo OTP
-    if os.getenv("SMTP_HOST"):
-        otp = ''.join(random.choices(string.digits, k=6))
-    else:
-        otp = "123456"
+    otp = ''.join(random.choices(string.digits, k=6))
     user.otp_code = otp
     db.commit()
     

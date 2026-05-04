@@ -9,7 +9,7 @@ from .models import models  # Ensure models are loaded before creation
 import time
 
 # Auto-create tables (with retry logic for slow DB startup)
-for _ in range(5):
+for _ in range(30):
     try:
         Base.metadata.create_all(bind=engine)
         print("Database tables created successfully")
@@ -22,7 +22,6 @@ for _ in range(5):
             if not db.query(Role).first():
                 db.add_all([
                     Role(role_name="admin", description="Administrator"),
-                    Role(role_name="parent", description="Parent"),
                     Role(role_name="student", description="Student")
                 ])
                 db.commit()
@@ -34,6 +33,8 @@ for _ in range(5):
     except Exception as e:
         print(f"Waiting for database to be ready... {e}")
         time.sleep(2)
+else:
+    raise RuntimeError("Could not connect to database after 30 retries!")
 
 app = FastAPI(title="EduFlow STMS API")
 

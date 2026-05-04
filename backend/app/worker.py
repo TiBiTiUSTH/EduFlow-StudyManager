@@ -4,13 +4,13 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 def send_otp_email(email_to: str, otp_code: str):
-    smtp_host = os.getenv("SMTP_HOST", "")
+    smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com")
     smtp_port = int(os.getenv("SMTP_PORT", "587"))
-    smtp_user = os.getenv("SMTP_USER", "")
-    smtp_password = os.getenv("SMTP_PASSWORD", "")
+    smtp_user = os.getenv("EMAIL_SENDER", "")
+    smtp_password = os.getenv("EMAIL_PASSWORD", "")
 
     if not smtp_host or not smtp_user or not smtp_password:
-        print(f"\n{'='*50}\n[MOCK EMAIL] To: {email_to}\nSubject: EduFlow OTP Verification\nOTP Code: {otp_code}\n{'='*50}\n")
+        print(f"\n{'='*50}\n[WARNING] EMAIL_SENDER or EMAIL_PASSWORD not set in .env!\n[MOCK EMAIL] To: {email_to}\nSubject: EduFlow OTP Verification\nOTP Code: {otp_code}\n{'='*50}\n")
         return
 
     try:

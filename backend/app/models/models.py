@@ -7,8 +7,7 @@ import enum
 # Các Enum cho hệ thống
 class RoleLevel(enum.IntEnum):
     ADMIN = 1
-    PARENT = 2
-    STUDENT = 3
+    STUDENT = 2
 
 class Gender(str, enum.Enum):
     MALE = "male"

@@ -50,7 +50,7 @@ const LoginPage = () => {
             const response = await axios.post('/stms/auth/login', formData);
             const { access_token, roles } = response.data;
 
-            if (roles.includes('admin') || roles.includes('parent')) {
+            if (roles.includes('admin')) {
                 setError('Vui lòng đăng nhập tại cổng dành đúng cho tài khoản của bạn!');
                 setLoading(false);
                 return;
