@@ -1,0 +1,7 @@
+.env
+__pycache__
+*.pyc
+test.db
+test_reg.py
+ping_server.py
+.git
