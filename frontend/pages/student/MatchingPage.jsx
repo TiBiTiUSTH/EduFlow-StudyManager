@@ -7,7 +7,7 @@ import axios from 'axios';
 const MatchingPage = () => {
     const { user } = useAuth();
     const token = localStorage.getItem('token');
-    const { addToast } = useToast();
+    const addToast = useToast();
     const [suggestions, setSuggestions] = useState([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [loading, setLoading] = useState(true);
@@ -27,11 +27,7 @@ const MatchingPage = () => {
             setCurrentIndex(0);
         } catch (error) {
             console.error('Lỗi khi tải gợi ý bạn học:', error);
-            addToast({
-                title: 'Lỗi',
-                message: 'Không thể kết nối máy chủ gợi ý. Vui lòng thử lại sau.',
-                type: 'error'
-            });
+            addToast('Không thể kết nối máy chủ gợi ý. Vui lòng thử lại sau.', 'error');
         } finally {
             setLoading(false);
         }
@@ -58,18 +54,10 @@ const MatchingPage = () => {
                     message: "Chào bạn, mình thấy hợp môn nên muốn học chung!"
                 }
             });
-            addToast({
-                title: 'Thành công',
-                message: 'Đã gửi lời mời kết bạn!',
-                type: 'success'
-            });
+            addToast('Đã gửi lời mời kết bạn!', 'success');
         } catch (error) {
             console.error('Lỗi gửi kết bạn:', error);
-            addToast({
-                title: 'Lỗi',
-                message: error.response?.data?.detail || 'Không thể gửi lời mời.',
-                type: 'error'
-            });
+            addToast(error.response?.data?.detail || 'Không thể gửi lời mời.', 'error');
         }
     };
 
