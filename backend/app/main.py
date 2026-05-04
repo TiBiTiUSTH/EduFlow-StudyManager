@@ -21,8 +21,8 @@ for _ in range(30):
         try:
             if not db.query(Role).first():
                 db.add_all([
-                    Role(role_name="admin", description="Administrator"),
-                    Role(role_name="student", description="Student")
+                    Role(role_name="admin", role_description="Administrator"),
+                    Role(role_name="student", role_description="Student")
                 ])
                 db.commit()
                 print("Default roles seeded.")
