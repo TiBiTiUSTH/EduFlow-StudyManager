@@ -149,17 +149,26 @@ async def update_task(task_id: int, task_update: TaskUpdate, db: Session = Depen
 
 @router.delete("/{task_id}")
 async def delete_task(task_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
-    from ..models.models import PomodoroSession, TaskChatHistory
+    from ..models.models import PomodoroSession, TaskChatHistory, Schedule
     
     db_task = db.query(Task).filter(Task.id == task_id, Task.user_id == current_user.id).first()
     if not db_task:
         raise HTTPException(status_code=404, detail="Task not found")
     
+    # Xóa subtask
     db.query(Task).filter(Task.parent_task_id == task_id).delete(synchronize_session=False)
 
     db.query(TaskChatHistory).filter(TaskChatHistory.task_id == task_id).delete(synchronize_session=False)
 
     db.query(PomodoroSession).filter(PomodoroSession.task_id == task_id).delete(synchronize_session=False)
+
+    # Xóa lịch liên quan đến task (auto-schedule tạo ra)
+    task_title = db_task.title
+    if task_title:
+        db.query(Schedule).filter(
+            Schedule.user_id == current_user.id,
+            Schedule.title.contains(task_title)
+        ).delete(synchronize_session=False)
 
     if db_task.attachments:
         try:
@@ -176,6 +185,7 @@ async def delete_task(task_id: int, db: Session = Depends(get_db), current_user:
 
     # Xóa cache
     invalidate_cache("/stms/tasks", current_user.id)
+    invalidate_cache("/stms/schedules", current_user.id)
 
     return {"message": "Đã xóa nhiệm vụ và toàn bộ dữ liệu liên quan"}
 

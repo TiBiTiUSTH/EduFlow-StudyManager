@@ -48,12 +48,19 @@ async def get_my_profile(
                 "daily_study_target": profile.daily_study_target
             }
             
+    # Chuyển đổi avatar_url cũ sang relative URL
+    avatar = current_user.avatar_url
+    if avatar and avatar.startswith("http://127.0.0.1:8000"):
+        avatar = avatar.replace("http://127.0.0.1:8000", "")
+    elif avatar and avatar.startswith("http://localhost:8000"):
+        avatar = avatar.replace("http://localhost:8000", "")
+
     return {
         "id": current_user.id,
         "username": current_user.username,
         "email": current_user.email,
         "full_name": current_user.full_name,
-        "avatar_url": current_user.avatar_url,
+        "avatar_url": avatar,
         "roles": user_roles,
         "profile": profile_data
     }
