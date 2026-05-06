@@ -41,7 +41,7 @@ app = FastAPI(title="EduFlow STMS API")
 # Cấu hình CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:8080", "http://localhost:8081", "http://127.0.0.1:8080", "http://127.0.0.1:8081", "http://localhost:3000"],
+    allow_origins=["http://localhost:8080", "http://localhost:8081", "http://127.0.0.1:8080", "http://127.0.0.1:8081", "http://localhost:3000", "https://eduflow-stms.me", "http://eduflow-stms.me", "https://www.eduflow-stms.me"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
