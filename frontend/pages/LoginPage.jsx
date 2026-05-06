@@ -125,13 +125,13 @@ const LoginPage = () => {
         <div className="min-h-screen bg-white flex relative overflow-hidden font-sans">
 
             {/* Thanh điều hướng trên cùng */}
-            <div className="absolute top-0 w-full h-20 bg-white border-b border-slate-100 flex items-center px-10 justify-between z-50">
+            <div className="absolute top-0 w-full h-16 md:h-20 bg-white border-b border-slate-100 flex items-center px-4 md:px-10 justify-between z-50">
                 <div className="flex items-center space-x-2">
-                    <GraduationCap className="text-slate-900" size={32} />
-                    <span className="font-black text-2xl tracking-tighter text-slate-900">EduFlow</span>
+                    <GraduationCap className="text-slate-900" size={28} />
+                    <span className="font-black text-xl md:text-2xl tracking-tighter text-slate-900">EduFlow</span>
                 </div>
-                <div className="hidden md:flex gap-6 items-center font-bold text-sm">
-                    <Link to="/stms/register" className="bg-primary-400 hover:bg-primary-500 text-slate-900 px-6 py-2.5 rounded-full transition-colors">Đăng ký mới</Link>
+                <div className="flex gap-4 items-center font-bold text-sm">
+                    <Link to="/stms/register" className="bg-primary-400 hover:bg-primary-500 text-slate-900 px-4 md:px-6 py-2 md:py-2.5 rounded-full transition-colors text-xs md:text-sm">Đăng ký mới</Link>
                 </div>
             </div>
 
@@ -152,7 +152,7 @@ const LoginPage = () => {
             </svg>
 
             {/* Bố cục */}
-            <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-center pt-20 px-6 lg:px-12 z-10 gap-16 lg:gap-24">
+            <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-center pt-16 md:pt-20 px-4 md:px-6 lg:px-12 z-10 gap-8 md:gap-16 lg:gap-24">
 
                 {/* Bên trái: Slogan */}
                 <div className="flex-1 text-center lg:text-left pt-12 lg:pt-0 z-20 relative">
@@ -160,7 +160,7 @@ const LoginPage = () => {
                         initial={{ opacity: 0, y: 30 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6 }}
-                        className="text-5xl lg:text-7xl font-black text-slate-900 leading-[1.1] tracking-tight mb-6"
+                        className="text-3xl md:text-5xl lg:text-7xl font-black text-slate-900 leading-[1.1] tracking-tight mb-4 md:mb-6"
                     >
                         Hệ thống Quản lý <br className="hidden lg:block" />
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-cyan-500">
@@ -171,7 +171,7 @@ const LoginPage = () => {
                         initial={{ opacity: 0, y: 30 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6, delay: 0.1 }}
-                        className="text-lg lg:text-xl text-slate-600 font-medium max-w-lg mx-auto lg:mx-0 mb-8 leading-relaxed"
+                        className="text-sm md:text-lg lg:text-xl text-slate-600 font-medium max-w-lg mx-auto lg:mx-0 mb-4 md:mb-8 leading-relaxed"
                     >
                         EduFlow là giải pháp giúp Học sinh & Sinh viên làm chủ quá trình học tập: Sắp xếp nhiệm vụ môn học, duy trì sự tập trung, và tra cứu tài liệu.
                     </motion.p>
@@ -261,7 +261,7 @@ const LoginPage = () => {
                                     {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Đăng nhập"}
                                 </button>
 
-                                <div className="text-center mt-6">
+                                <div className="text-center mt-4 space-y-3">
                                     <button
                                         type="button"
                                         onClick={() => { setIsForgotPassword(true); setError(''); }}
@@ -269,6 +269,12 @@ const LoginPage = () => {
                                     >
                                         Quên mật khẩu?
                                     </button>
+                                    <p className="text-sm text-slate-500">
+                                        Chưa có tài khoản?{' '}
+                                        <Link to="/stms/register" className="font-bold text-primary-600 hover:text-primary-700 transition-colors">
+                                            Đăng ký ngay
+                                        </Link>
+                                    </p>
                                 </div>
                             </form>
                         ) : (

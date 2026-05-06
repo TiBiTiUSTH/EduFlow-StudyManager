@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Users, ArrowLeft, Copy, Video, LogOut, Mic, MicOff, VideoOff, PhoneOff, MonitorUp, StopCircle } from 'lucide-react';
+import { Users, ArrowLeft, Copy, Video, LogOut, Mic, MicOff, VideoOff, PhoneOff, MonitorUp, StopCircle, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import axios from 'axios';
 import socket from '@/lib/socket';
@@ -24,7 +24,7 @@ function RemoteVideo({ stream, name }) {
   }, [stream]);
   if (!stream) return (
     <div className="absolute inset-0 flex items-center justify-center bg-slate-800">
-      <div className="w-20 h-20 rounded-full bg-slate-700 flex items-center justify-center text-3xl font-bold text-white shadow-inner">
+      <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-slate-700 flex items-center justify-center text-2xl md:text-3xl font-bold text-white shadow-inner">
         {name?.[0]}
       </div>
     </div>
@@ -43,12 +43,15 @@ export default function StudyRoomDetailPage() {
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [copied, setCopied] = useState(false);
   const [hostLeftPopup, setHostLeftPopup] = useState(false);
+  const [showSidebar, setShowSidebar] = useState(false);
 
   const localVideoRef = useRef(null);
   const localStreamRef = useRef(null);
+  const streamReadyRef = useRef(false);
 
   const peers = useRef({});
   const iceQueue = useRef({});
+  const pendingPeers = useRef([]);
   const [remoteStreams, setRemoteStreams] = useState({});
   const [remoteMediaStatus, setRemoteMediaStatus] = useState({});
 
@@ -57,6 +60,25 @@ export default function StudyRoomDetailPage() {
       localVideoRef.current.srcObject = localStreamRef.current;
     }
   }, []);
+
+  // Tính toán grid class dựa trên số người
+  const totalParticipants = useMemo(() => {
+    const remoteCount = members.filter(m => m.user_id !== user?.id).length;
+    return 1 + remoteCount; // local + remotes
+  }, [members, user?.id]);
+
+  const getGridClass = useCallback(() => {
+    if (totalParticipants <= 1) return 'grid-cols-1';
+    if (totalParticipants === 2) return 'grid-cols-2';
+    if (totalParticipants <= 4) return 'grid-cols-2 grid-rows-2';
+    return 'grid-cols-3';
+  }, [totalParticipants]);
+
+  const getVideoAspect = useCallback(() => {
+    if (totalParticipants <= 1) return 'aspect-video max-w-4xl mx-auto';
+    if (totalParticipants === 2) return 'aspect-video';
+    return '';
+  }, [totalParticipants]);
 
   useEffect(() => {
     if (!user?.id || !roomId) return;
@@ -124,28 +146,49 @@ export default function StudyRoomDetailPage() {
         try {
           const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
           localStreamRef.current = stream;
+          streamReadyRef.current = true;
           attachLocalVideo();
         } catch (err) {
           console.error("Media error:", err);
           setIsVideoOff(true);
           setIsMuted(true);
+          streamReadyRef.current = true;
         }
       } else {
         setIsVideoOff(true);
         setIsMuted(true);
+        streamReadyRef.current = true;
       }
 
       socket.joinRoom(roomId);
       fetchRoom();
       fetchMembers();
+
+      // Tạo peer cho những user đã join trước khi stream sẵn sàng
+      if (pendingPeers.current.length > 0) {
+        for (const userId of pendingPeers.current) {
+          if (!peers.current[userId]) {
+            createPeer(userId, true);
+          }
+        }
+        pendingPeers.current = [];
+      }
     };
 
     initRoom();
 
     const unsubJoined = socket.on('user_joined', (data) => {
       fetchMembers();
-      if (data.user_id !== user.id && !peers.current[data.user_id]) {
-        setTimeout(() => createPeer(data.user_id, true), 300);
+      if (data.user_id !== user.id) {
+        if (streamReadyRef.current) {
+          // Stream sẵn sàng → tạo peer ngay
+          if (!peers.current[data.user_id]) {
+            setTimeout(() => createPeer(data.user_id, true), 300);
+          }
+        } else {
+          // Stream chưa sẵn sàng → đợi
+          pendingPeers.current.push(data.user_id);
+        }
       }
     });
 
@@ -223,6 +266,7 @@ export default function StudyRoomDetailPage() {
       socket.leaveRoom(roomId);
       Object.values(peers.current).forEach(p => p.close());
       peers.current = {};
+      streamReadyRef.current = false;
       if (localStreamRef.current) {
         localStreamRef.current.getTracks().forEach(track => track.stop());
         localStreamRef.current = null;
@@ -355,64 +399,77 @@ export default function StudyRoomDetailPage() {
 
   if (!room) return <div className="flex items-center justify-center h-96"><div className="animate-spin w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full" /></div>;
 
+  const remoteMembers = members.filter(m => m.user_id !== user?.id);
+
   return (
-    <div className="flex h-[calc(100vh-64px)] -mt-8 -mx-8">
-      <div className="flex-1 flex flex-col bg-white dark:bg-slate-900">
-        <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex items-center gap-4">
-          <button onClick={() => navigate('/stms/student/room')} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors">
+    <div className="flex h-[calc(100vh-64px)] -mt-4 md:-mt-8 -mx-4 md:-mx-8">
+      <div className="flex-1 flex flex-col bg-white dark:bg-slate-900 min-w-0">
+        {/* Header bar */}
+        <div className="px-3 md:px-6 py-3 md:py-4 border-b border-slate-200 dark:border-slate-700 flex items-center gap-2 md:gap-4 shrink-0">
+          <button onClick={() => navigate('/stms/student/room')} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors shrink-0">
             <ArrowLeft size={20} className="text-slate-600 dark:text-slate-300" />
           </button>
-          <div className="flex-1">
-            <h2 className="font-bold text-slate-800 dark:text-white">{room.name}</h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">{room.subject_name || 'Tổng hợp'} • {members.length} thành viên</p>
+          <div className="flex-1 min-w-0">
+            <h2 className="font-bold text-slate-800 dark:text-white text-sm md:text-base truncate">{room.name}</h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{room.subject_name || 'Tổng hợp'} • {members.length} thành viên</p>
           </div>
           <button onClick={copyCode}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg text-xs font-mono font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+            className="flex items-center gap-1.5 px-2 md:px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg text-xs font-mono font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors shrink-0">
             {copied ? <span className="text-emerald-500">Đã chép</span> : <Copy size={14} />}
-            {room.room_code}
+            <span className="hidden sm:inline">{room.room_code}</span>
+          </button>
+          {/* Toggle sidebar mobile */}
+          <button
+            onClick={() => setShowSidebar(!showSidebar)}
+            className="md:hidden p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors text-slate-600 dark:text-slate-400 shrink-0"
+          >
+            <Users size={18} />
           </button>
         </div>
 
-        <div className="flex-1 bg-slate-900 p-6 flex items-center justify-center relative overflow-hidden">
-          <div className="w-full h-full max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 auto-rows-fr">
+        {/* Video Grid */}
+        <div className="flex-1 bg-slate-900 p-2 md:p-6 flex items-center justify-center relative overflow-hidden">
+          <div className={`w-full h-full max-w-6xl mx-auto grid ${getGridClass()} gap-2 md:gap-4 auto-rows-fr`}>
 
-            <div className={`relative bg-slate-800 rounded-2xl overflow-hidden border-2 shadow-lg ${isScreenSharing ? 'border-amber-500' : 'border-primary-500'}`}>
+            {/* Local video */}
+            <div className={`relative bg-slate-800 rounded-xl md:rounded-2xl overflow-hidden border-2 shadow-lg ${isScreenSharing ? 'border-amber-500' : 'border-primary-500'} ${getVideoAspect()}`}>
               {isVideoOff ? (
                 <div className="absolute inset-0 flex items-center justify-center bg-slate-800">
-                  <div className="w-20 h-20 rounded-full bg-slate-700 flex items-center justify-center text-3xl font-bold text-white shadow-inner">
+                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-slate-700 flex items-center justify-center text-2xl md:text-3xl font-bold text-white shadow-inner">
                     {(user?.full_name || user?.username)?.[0] || 'U'}
                   </div>
                 </div>
               ) : (
                 <video ref={localVideoRef} autoPlay muted playsInline className={`w-full h-full object-cover ${!isScreenSharing && 'transform -scale-x-100'}`} />
               )}
-              <div className="absolute bottom-4 left-4 right-4 flex justify-between items-center">
-                <div className="bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-lg flex items-center gap-2">
-                  {isMuted && <MicOff size={14} className="text-red-500" />}
-                  <span className="text-white text-sm font-semibold truncate max-w-[150px]">
-                    Bạn {isScreenSharing ? "(Đang chia sẻ)" : (room.host_id === user?.id ? "(Host)" : "")}
+              <div className="absolute bottom-2 md:bottom-4 left-2 md:left-4 right-2 md:right-4 flex justify-between items-center">
+                <div className="bg-black/60 backdrop-blur-md px-2 md:px-3 py-1 md:py-1.5 rounded-lg flex items-center gap-1.5 md:gap-2">
+                  {isMuted && <MicOff size={12} className="text-red-500" />}
+                  <span className="text-white text-xs md:text-sm font-semibold truncate max-w-[100px] md:max-w-[150px]">
+                    Bạn {isScreenSharing ? "(Chia sẻ)" : (room.host_id === user?.id ? "(Host)" : "")}
                   </span>
                 </div>
               </div>
             </div>
 
-            {members.filter(m => m.user_id !== user?.id).map(m => {
+            {/* Remote videos */}
+            {remoteMembers.map(m => {
               const status = remoteMediaStatus[m.user_id];
               return (
-                <div key={m.user_id} className="relative bg-slate-800 rounded-2xl overflow-hidden shadow-lg">
+                <div key={m.user_id} className={`relative bg-slate-800 rounded-xl md:rounded-2xl overflow-hidden shadow-lg ${getVideoAspect()}`}>
                   {status?.videoOff ? (
                     <div className="absolute inset-0 flex items-center justify-center bg-slate-800">
-                      <div className="w-20 h-20 rounded-full bg-slate-700 flex items-center justify-center text-3xl font-bold text-white shadow-inner">
+                      <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-slate-700 flex items-center justify-center text-2xl md:text-3xl font-bold text-white shadow-inner">
                         {(m.full_name || m.username)?.[0]}
                       </div>
                     </div>
                   ) : (
                     <RemoteVideo stream={remoteStreams[m.user_id]} name={m.full_name || m.username} />
                   )}
-                  <div className="absolute bottom-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-lg flex items-center gap-2">
-                    {status?.muted && <MicOff size={14} className="text-red-500" />}
-                    {status?.videoOff && <VideoOff size={14} className="text-red-500" />}
-                    <span className="text-white text-sm font-semibold truncate max-w-[120px]">{m.full_name || m.username}</span>
+                  <div className="absolute bottom-2 md:bottom-4 left-2 md:left-4 bg-black/60 backdrop-blur-md px-2 md:px-3 py-1 md:py-1.5 rounded-lg flex items-center gap-1.5 md:gap-2">
+                    {status?.muted && <MicOff size={12} className="text-red-500" />}
+                    {status?.videoOff && <VideoOff size={12} className="text-red-500" />}
+                    <span className="text-white text-xs md:text-sm font-semibold truncate max-w-[80px] md:max-w-[120px]">{m.full_name || m.username}</span>
                   </div>
                 </div>
               );
@@ -420,30 +477,43 @@ export default function StudyRoomDetailPage() {
           </div>
         </div>
 
-        <div className="h-20 bg-slate-950 border-t border-slate-800 flex items-center justify-center gap-4 px-6 shrink-0">
-          <button onClick={toggleMute} className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${isMuted ? 'bg-red-500/20 text-red-500 hover:bg-red-500/30' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white'}`}>
-            {isMuted ? <MicOff size={20} /> : <Mic size={20} />}
+        {/* Controls bar */}
+        <div className="h-16 md:h-20 bg-slate-950 border-t border-slate-800 flex items-center justify-center gap-2 md:gap-4 px-4 md:px-6 shrink-0">
+          <button onClick={toggleMute} className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all ${isMuted ? 'bg-red-500/20 text-red-500 hover:bg-red-500/30' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white'}`}>
+            {isMuted ? <MicOff size={18} /> : <Mic size={18} />}
           </button>
 
-          <button onClick={toggleVideo} disabled={isScreenSharing} className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${isVideoOff ? 'bg-red-500/20 text-red-500 hover:bg-red-500/30' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white'} ${isScreenSharing && 'opacity-50 cursor-not-allowed'}`}>
-            {isVideoOff ? <VideoOff size={20} /> : <Video size={20} />}
+          <button onClick={toggleVideo} disabled={isScreenSharing} className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all ${isVideoOff ? 'bg-red-500/20 text-red-500 hover:bg-red-500/30' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white'} ${isScreenSharing && 'opacity-50 cursor-not-allowed'}`}>
+            {isVideoOff ? <VideoOff size={18} /> : <Video size={18} />}
           </button>
 
-          <button onClick={toggleScreenShare} className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${isScreenSharing ? 'bg-amber-500 text-white hover:bg-amber-600 shadow-lg shadow-amber-500/30' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white'}`}>
-            {isScreenSharing ? <StopCircle size={20} /> : <MonitorUp size={20} />}
+          <button onClick={toggleScreenShare} className={`hidden md:flex w-10 h-10 md:w-12 md:h-12 rounded-full items-center justify-center transition-all ${isScreenSharing ? 'bg-amber-500 text-white hover:bg-amber-600 shadow-lg shadow-amber-500/30' : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white'}`}>
+            {isScreenSharing ? <StopCircle size={18} /> : <MonitorUp size={18} />}
           </button>
 
-          <div className="w-px h-8 bg-slate-800 mx-2" />
+          <div className="w-px h-6 md:h-8 bg-slate-800 mx-1 md:mx-2" />
 
-          <button onClick={leaveRoom} className="px-6 h-12 rounded-full flex items-center justify-center gap-2 bg-red-500 text-white font-bold hover:bg-red-600 transition-all shadow-lg shadow-red-500/20">
-            <PhoneOff size={20} /> Rời cuộc gọi
+          <button onClick={leaveRoom} className="px-4 md:px-6 h-10 md:h-12 rounded-full flex items-center justify-center gap-1.5 md:gap-2 bg-red-500 text-white font-bold text-sm hover:bg-red-600 transition-all shadow-lg shadow-red-500/20">
+            <PhoneOff size={18} /> <span className="hidden sm:inline">Rời cuộc gọi</span>
           </button>
         </div>
       </div>
 
-      <div className="w-64 bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-700 flex flex-col">
-        <div className="p-4 border-b border-slate-200 dark:border-slate-700">
+      {/* Sidebar thành viên - responsive */}
+      {showSidebar && (
+        <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={() => setShowSidebar(false)} />
+      )}
+      <div className={`
+        fixed md:static right-0 top-0 h-full w-64 
+        bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-700 
+        flex flex-col z-50 transition-transform duration-300
+        ${showSidebar ? 'translate-x-0' : 'translate-x-full'} md:translate-x-0
+      `}>
+        <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
           <h3 className="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2"><Users size={16} /> Thành viên ({members.length})</h3>
+          <button onClick={() => setShowSidebar(false)} className="md:hidden p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-400">
+            <ChevronRight size={18} />
+          </button>
         </div>
         <div className="flex-1 overflow-y-auto p-3 space-y-2">
           {members.map(m => (

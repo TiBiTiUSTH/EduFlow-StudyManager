@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import {
     LayoutDashboard,
@@ -14,9 +14,10 @@ import {
     Users,
     MessageSquare,
     FolderOpen,
+    X,
 } from 'lucide-react';
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, onClose }) => {
     const userRoles = JSON.parse(localStorage.getItem('roles') || '[]');
 
     const studentItems = [
@@ -40,42 +41,62 @@ const Sidebar = () => {
     };
 
     return (
-        <div className="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 h-screen flex flex-col fixed left-0 top-0 transition-colors">
-            <div className="p-6">
-                <div className="flex items-center space-x-3 text-primary-600">
-                    <div className="w-10 h-10 bg-primary-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary-200 dark:shadow-primary-900">
-                        <BookOpen size={24} />
+        <>
+            {/* Overlay cho mobile */}
+            {isOpen && (
+                <div 
+                    className="fixed inset-0 bg-black/50 z-40 md:hidden backdrop-blur-sm"
+                    onClick={onClose}
+                />
+            )}
+
+            <div className={`
+                w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 
+                h-screen flex flex-col fixed left-0 top-0 transition-all duration-300 z-50
+                ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0
+            `}>
+                <div className="p-6 flex items-center justify-between">
+                    <div className="flex items-center space-x-3 text-primary-600">
+                        <div className="w-10 h-10 bg-primary-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary-200 dark:shadow-primary-900">
+                            <BookOpen size={24} />
+                        </div>
+                        <span className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">EduFlow</span>
                     </div>
-                    <span className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">EduFlow</span>
-                </div>
-            </div>
-
-            <nav className="flex-1 px-4 py-4 space-y-1">
-                {menuItems.map((item) => (
-                    <NavLink
-                        key={item.path}
-                        to={item.path}
-                        end={item.path === '/stms/student' || item.path === '/stms/admin' || item.path === '/stms/student/community/group'}
-                        className={({ isActive }) => {
-                            // Community sidebar item should be active on both /group and /friends
-                            const isCommunityActive = item.path === '/stms/student/community/group' &&
-                                window.location.pathname.startsWith('/stms/student/community/');
-                            return `
-              flex items-center space-x-3 px-4 py-3 rounded-xl transition-all group
-              ${(isActive || isCommunityActive)
-                                    ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 font-semibold'
-                                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'}
-            `;
-                        }}
+                    {/* Nút đóng trên mobile */}
+                    <button 
+                        onClick={onClose}
+                        className="md:hidden p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors text-slate-500"
                     >
-                        <item.icon size={20} className="group-hover:scale-110 transition-transform" />
-                        <span>{item.label}</span>
-                    </NavLink>
-                ))}
-            </nav>
+                        <X size={20} />
+                    </button>
+                </div>
 
-
-        </div>
+                <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
+                    {menuItems.map((item) => (
+                        <NavLink
+                            key={item.path}
+                            to={item.path}
+                            end={item.path === '/stms/student' || item.path === '/stms/admin' || item.path === '/stms/student/community/group'}
+                            onClick={onClose}
+                            className={({ isActive }) => {
+                                // Community sidebar item should be active on both /group and /friends
+                                const isCommunityActive = item.path === '/stms/student/community/group' &&
+                                    window.location.pathname.startsWith('/stms/student/community/');
+                                return `
+                                    flex items-center space-x-3 px-4 py-3 rounded-xl transition-all group
+                                    ${(isActive || isCommunityActive)
+                                        ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 font-semibold'
+                                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'}
+                                `;
+                            }}
+                        >
+                            <item.icon size={20} className="group-hover:scale-110 transition-transform" />
+                            <span>{item.label}</span>
+                        </NavLink>
+                    ))}
+                </nav>
+            </div>
+        </>
     );
 };
 

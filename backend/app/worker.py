@@ -2,6 +2,7 @@ import os
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from datetime import datetime
 
 def send_otp_email(email_to: str, otp_code: str):
     smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com")
@@ -22,42 +23,62 @@ def send_otp_email(email_to: str, otp_code: str):
         # Phiên bản plain text dự phòng
         text_body = f"Xin chào!\n\nMã xác thực OTP của bạn là: {otp_code}\n\nMã này có hiệu lực trong vòng 5 phút.\n\nTrân trọng,\nĐội ngũ EduFlow"
 
-        # Phiên bản HTML (giống bản localhost)
-        spaced_otp = " ".join(list(otp_code))
+        # Tạo các ô OTP riêng biệt
+        otp_boxes = ""
+        for digit in otp_code:
+            otp_boxes += f'''<td style="padding:0 4px;">
+                <div style="width:52px;height:64px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);border-radius:12px;display:inline-block;text-align:center;line-height:64px;color:#ffffff;font-size:28px;font-weight:900;font-family:'Courier New',monospace;letter-spacing:0;box-shadow:0 4px 12px rgba(102,126,234,0.4);">
+                    {digit}
+                </div>
+            </td>'''
+
+        current_year = datetime.now().year
+
         html_body = f"""<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="margin:0;padding:0;background-color:#f0f4f8;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;">
-    <div style="max-width:520px;margin:40px auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
-        
+<body style="margin:0;padding:0;background-color:#f0f2f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
+    <div style="max-width:480px;margin:40px auto;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.12);">
+
         <!-- Header -->
-        <div style="background:linear-gradient(135deg,#4f8cff 0%,#6366f1 100%);padding:36px 0;text-align:center;">
-            <h1 style="color:#ffffff;font-size:28px;font-weight:800;margin:0;letter-spacing:1px;">EduFlow</h1>
-        </div>
-        
-        <!-- Body -->
-        <div style="padding:40px 36px;text-align:center;">
-            <h2 style="color:#1e293b;font-size:20px;font-weight:700;margin:0 0 8px 0;">Xin chào! 👋</h2>
-            <p style="color:#475569;font-size:15px;line-height:1.6;margin:0 0 28px 0;">
-                Cảm ơn bạn đã đồng hành cùng <strong>EduFlow</strong>!<br>
-                Để hoàn tất xác thực tài khoản và trải nghiệm đầy đủ tính năng, vui lòng sử dụng mã OTP dưới đây:
-            </p>
-            
-            <!-- OTP Box -->
-            <div style="background:linear-gradient(135deg,#eef2ff 0%,#e0e7ff 100%);border:2px solid #c7d2fe;border-radius:16px;padding:24px;margin:0 auto 24px auto;max-width:320px;">
-                <p style="color:#4338ca;font-size:36px;font-weight:900;letter-spacing:12px;margin:0;font-family:'Courier New',monospace;">{spaced_otp}</p>
+        <div style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);padding:40px 0;text-align:center;position:relative;">
+            <div style="width:60px;height:60px;background:rgba(255,255,255,0.2);border-radius:16px;margin:0 auto 16px auto;display:flex;align-items:center;justify-content:center;">
+                <span style="font-size:32px;">📚</span>
             </div>
-            
-            <p style="color:#94a3b8;font-size:13px;margin:0 0 8px 0;">Mã này có hiệu lực trong vòng <strong style="color:#ef4444;">5 phút</strong>.</p>
-            <p style="color:#cbd5e1;font-size:12px;margin:0;">Nếu bạn không yêu cầu mã này, vui lòng bỏ qua email.</p>
+            <h1 style="color:#ffffff;font-size:24px;font-weight:800;margin:0;letter-spacing:0.5px;">EduFlow</h1>
+            <p style="color:rgba(255,255,255,0.8);font-size:13px;margin:8px 0 0 0;font-weight:500;">Hệ thống Quản lý Học tập Thông minh</p>
         </div>
-        
+
+        <!-- Body -->
+        <div style="padding:40px 32px;text-align:center;">
+            <h2 style="color:#1a1a2e;font-size:22px;font-weight:800;margin:0 0 8px 0;">Xác thực tài khoản</h2>
+            <p style="color:#6b7280;font-size:14px;line-height:1.7;margin:0 0 32px 0;">
+                Nhập mã bên dưới để hoàn tất xác thực.<br>
+                Mã có hiệu lực trong <strong style="color:#ef4444;">5 phút</strong>.
+            </p>
+
+            <!-- OTP Boxes -->
+            <table cellpadding="0" cellspacing="0" border="0" style="margin:0 auto 32px auto;">
+                <tr>
+                    {otp_boxes}
+                </tr>
+            </table>
+
+            <div style="background:#f8f9fc;border-radius:12px;padding:16px 20px;margin:0 auto;max-width:360px;">
+                <p style="color:#9ca3af;font-size:12px;line-height:1.6;margin:0;">
+                    ⚠️ Nếu bạn không yêu cầu mã này, vui lòng bỏ qua email này.<br>
+                    Không chia sẻ mã OTP với bất kỳ ai.
+                </p>
+            </div>
+        </div>
+
         <!-- Footer -->
-        <div style="background:#f8fafc;padding:20px;text-align:center;border-top:1px solid #e2e8f0;">
-            <p style="color:#94a3b8;font-size:12px;margin:0;">© 2024 EduFlow - Hệ thống Quản lý Học tập Thông minh</p>
+        <div style="background:#f8f9fc;padding:24px 32px;text-align:center;border-top:1px solid #e5e7eb;">
+            <p style="color:#9ca3af;font-size:11px;margin:0 0 4px 0;">© {current_year} EduFlow - Hệ thống Quản lý Học tập Thông minh</p>
+            <p style="color:#d1d5db;font-size:10px;margin:0;">Email này được gửi tự động, vui lòng không trả lời.</p>
         </div>
     </div>
 </body>

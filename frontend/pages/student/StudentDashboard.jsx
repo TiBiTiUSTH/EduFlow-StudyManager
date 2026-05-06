@@ -55,8 +55,8 @@ const StudentDashboard = () => {
         : SUGGESTED_SUBJECTS.filter(s => s.category === activeTab);
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col font-sans -mt-8 -mx-8 transition-colors">
-            <div className="bg-white dark:bg-slate-900 px-10 py-20 lg:py-28 relative overflow-hidden border-b border-slate-200 dark:border-slate-800 transition-colors">
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col font-sans -mt-4 md:-mt-8 -mx-4 md:-mx-8 transition-colors">
+            <div className="bg-white dark:bg-slate-900 px-4 md:px-10 py-12 md:py-20 lg:py-28 relative overflow-hidden border-b border-slate-200 dark:border-slate-800 transition-colors">
                 {/* Hình nền trang trí */}
                 <div className="absolute top-0 right-0 w-1/2 h-full opacity-10 pointer-events-none">
                     <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" className="w-full h-full transform translate-x-1/3 scale-150">
@@ -71,13 +71,13 @@ const StudentDashboard = () => {
 
                 <div className="max-w-4xl relative z-10">
                     <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-                        <h1 className="text-5xl lg:text-7xl font-black text-slate-900 dark:text-white leading-tight mb-6 tracking-tight">
+                        <h1 className="text-3xl md:text-5xl lg:text-7xl font-black text-slate-900 dark:text-white leading-tight mb-4 md:mb-6 tracking-tight">
                             Quản lý học tập. <br />
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-500 to-rose-500">
                                 Tối ưu thời gian.
                             </span>
                         </h1>
-                        <p className="text-xl text-slate-600 dark:text-slate-400 mb-10 max-w-2xl font-medium leading-relaxed">
+                        <p className="text-sm md:text-xl text-slate-600 dark:text-slate-400 mb-6 md:mb-10 max-w-2xl font-medium leading-relaxed">
                             Lên lịch học, chia nhỏ bài tập, tập trung với đồng hồ Pomodoro. EduFlow giúp bạn tổ chức việc học một cách khoa học và hiệu quả.
                         </p>
 
@@ -86,7 +86,7 @@ const StudentDashboard = () => {
             </div>
 
             {/* Màn hình lưới tối */}
-            <div className="flex-1 bg-slate-950 text-white px-10 py-16">
+            <div className="flex-1 bg-slate-950 text-white px-4 md:px-10 py-8 md:py-16">
 
                 {/* Nút thể loại */}
                 <div className="flex flex-wrap items-center gap-3 mb-12 border-b border-slate-800 pb-8">
