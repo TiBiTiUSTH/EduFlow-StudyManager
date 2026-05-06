@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, MessageSquare, Search, Send, Hash, UserPlus, UserMinus, Check, X, Circle, ChevronRight, Plus, Lock, Globe } from 'lucide-react';
+import { Users, MessageSquare, Search, Send, Hash, UserPlus, UserMinus, Check, X, Circle, ChevronRight, Plus, Lock, Globe, Menu, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -39,6 +39,7 @@ export default function CommunityPage() {
   const [showRemoveBuddyConfirm, setShowRemoveBuddyConfirm] = useState(null);
   const [showKickConfirm, setShowKickConfirm] = useState(null);
   const [feedbackModal, setFeedbackModal] = useState(null);
+  const [showLeftPanel, setShowLeftPanel] = useState(false);
   const chatEnd = useRef(null);
   const selectedChannelRef = useRef(null);
   const selectedBuddyRef = useRef(null);
@@ -318,9 +319,11 @@ export default function CommunityPage() {
   const chatActive = selectedChannel || selectedBuddy;
 
   return (
-    <div className="flex h-[calc(100vh-64px)] -mt-8 -mx-8 bg-slate-50 dark:bg-slate-950">
+    <div className="flex h-[calc(100vh-64px)] -mt-8 -mx-8 bg-slate-50 dark:bg-slate-950 relative">
+      {/* Mobile overlay */}
+      {showLeftPanel && <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-30 md:hidden" onClick={() => setShowLeftPanel(false)} />}
       {/* PANEL TRÁI */}
-      <div className="w-80 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col">
+      <div className={`w-80 max-md:w-[300px] bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:z-40 max-md:shadow-2xl transition-transform ${showLeftPanel ? 'max-md:translate-x-0' : 'max-md:-translate-x-full'}`}>
         {/* Tabs */}
         <div className="flex border-b border-slate-200 dark:border-slate-800">
           {TABS.map(t => (
@@ -361,7 +364,7 @@ export default function CommunityPage() {
             </div>
           )}
           {activeTab === 'group' && channels.map(ch => (
-            <button key={ch.id} onClick={() => ch.is_joined ? openChannel(ch) : joinChannel(ch)}
+            <button key={ch.id} onClick={() => { ch.is_joined ? openChannel(ch) : joinChannel(ch); setShowLeftPanel(false); }}
               className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors border-b border-slate-50 dark:border-slate-800
               ${selectedChannel?.id === ch.id ? 'bg-primary-50 dark:bg-primary-900/20 border-l-3 border-l-primary-500' : ''}`}>
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-bold flex-shrink-0">
@@ -389,7 +392,7 @@ export default function CommunityPage() {
           {activeTab === 'friends' && buddies.map(b => (
             <div key={b.user_id} className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors border-b border-slate-50 dark:border-slate-800 group cursor-pointer
               ${selectedBuddy?.user_id === b.user_id ? 'bg-primary-50 dark:bg-primary-900/20' : ''}`}
-              onClick={() => openDM(b)}>
+              onClick={() => { openDM(b); setShowLeftPanel(false); }}>
               <div className="relative">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-bold">
                   {(b.full_name || b.username)?.[0]}
@@ -417,8 +420,11 @@ export default function CommunityPage() {
         {chatActive ? (
           <>
             {/* Header */}
-            <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3">
+            <div className="px-6 max-md:px-4 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
+                <button onClick={() => { setSelectedChannel(null); setSelectedBuddy(null); setShowLeftPanel(true); }} className="md:hidden p-2 -ml-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-600 dark:text-slate-300">
+                  <ArrowLeft size={20} />
+                </button>
                 {selectedChannel && <><div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-bold flex-shrink-0">{selectedChannel.subject_name?.[0]?.toUpperCase()}</div><div><h2 className="font-bold text-slate-800 dark:text-white">{selectedChannel.subject_name}</h2><p className="text-xs text-slate-500">{selectedChannel.member_count} thành viên</p></div></>}
                 {selectedBuddy && <><div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-bold flex-shrink-0">{(selectedBuddy.full_name || selectedBuddy.username)?.[0]?.toUpperCase()}</div><div><h2 className="font-bold text-slate-800 dark:text-white">{selectedBuddy.full_name || selectedBuddy.username}</h2><p className="text-xs text-emerald-500 font-medium">Đang hoạt động</p></div></>}
               </div>
@@ -442,7 +448,7 @@ export default function CommunityPage() {
               {/* KHU VỰC CHAT */}
               <div className="flex-1 flex flex-col">
                 {/* TIN NHẮN */}
-                <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                <div className="flex-1 overflow-y-auto p-6 max-md:p-3 space-y-4">
                   {(selectedChannel ? channelMessages : dmMessages).map((msg, i) => {
                     const isMe = msg.user_id === user.id || msg.sender_id === user.id;
                     return (
@@ -486,7 +492,7 @@ export default function CommunityPage() {
                 </div>
 
                 {/* NHẬP TIN NHẮN */}
-                <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-800">
+                <div className="px-6 max-md:px-3 py-4 max-md:py-3 border-t border-slate-200 dark:border-slate-800">
                   <div className="flex items-center gap-3 bg-slate-100 dark:bg-slate-800 rounded-2xl px-4 py-2">
                     <input value={msgInput} onChange={e => setMsgInput(e.target.value)}
                       onKeyDown={e => e.key === 'Enter' && (selectedChannel ? sendChannelMsg() : sendDM())}
@@ -569,7 +575,10 @@ export default function CommunityPage() {
           </>
         ) : (
           <div className="flex-1 flex items-center justify-center">
-            <div className="text-center">
+            <div className="text-center px-4">
+              <button onClick={() => setShowLeftPanel(true)} className="md:hidden mb-6 px-4 py-2 bg-primary-500 text-white rounded-xl font-bold text-sm flex items-center gap-2 mx-auto">
+                <Menu size={16} /> Xem danh sách
+              </button>
               <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-3xl flex items-center justify-center mx-auto mb-6">
                 <MessageSquare className="text-slate-400" size={40} />
               </div>

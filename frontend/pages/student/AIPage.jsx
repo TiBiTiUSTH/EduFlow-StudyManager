@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Paperclip, Loader2, FileText, X, Trash2, Plus, MessageSquare, Upload } from 'lucide-react';
+import { Send, Bot, User, Paperclip, Loader2, FileText, X, Trash2, Plus, MessageSquare, Upload, Menu, ArrowLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 
@@ -12,6 +12,7 @@ const AIPage = () => {
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
     const [selectedFile, setSelectedFile] = useState(null);
+    const [showSidebar, setShowSidebar] = useState(false);
     const [historyLoaded, setHistoryLoaded] = useState(false);
     const messagesEndRef = useRef(null);
 
@@ -159,12 +160,14 @@ const AIPage = () => {
     };
 
     return (
-        <div className="h-[calc(100vh-8rem)] flex rounded-[32px] overflow-hidden border border-slate-100 dark:border-slate-700 shadow-sm bg-white dark:bg-slate-900 transition-colors">
+        <div className="h-[calc(100vh-8rem)] flex rounded-[32px] max-md:rounded-none overflow-hidden border border-slate-100 dark:border-slate-700 max-md:border-0 shadow-sm bg-white dark:bg-slate-900 transition-colors relative">
+            {/* Mobile overlay */}
+            {showSidebar && <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-30 md:hidden" onClick={() => setShowSidebar(false)} />}
             {/* Thanh bên - Danh sách cuộc trò chuyện */}
-            <div className="w-72 bg-slate-50 dark:bg-slate-800 border-r border-slate-100 dark:border-slate-700 flex flex-col shrink-0 transition-colors">
+            <div className={`w-72 bg-slate-50 dark:bg-slate-800 border-r border-slate-100 dark:border-slate-700 flex flex-col shrink-0 transition-all max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:z-40 max-md:w-[280px] max-md:shadow-2xl ${showSidebar ? 'max-md:translate-x-0' : 'max-md:-translate-x-full'}`}>
                 <div className="p-4 border-b border-slate-100 dark:border-slate-700">
                     <button
-                        onClick={createNewThread}
+                        onClick={() => { createNewThread(); setShowSidebar(false); }}
                         className="w-full bg-primary-600 text-white px-4 py-3 rounded-xl flex items-center justify-center gap-2 font-bold shadow-md shadow-primary-200 hover:bg-primary-700 transition-all text-sm"
                     >
                         <Plus size={18} /> Trò chuyện mới
@@ -180,7 +183,7 @@ const AIPage = () => {
                     {threads.map(t => (
                         <div
                             key={t.thread_id}
-                            onClick={() => setActiveThread(t.thread_id)}
+                            onClick={() => { setActiveThread(t.thread_id); setShowSidebar(false); }}
                             className={`p-3 rounded-xl cursor-pointer flex items-start justify-between group transition-all ${activeThread === t.thread_id
                                 ? 'bg-primary-50 dark:bg-primary-900/20 border border-primary-100 dark:border-primary-800'
                                 : 'hover:bg-white dark:hover:bg-slate-800 border border-transparent hover:border-slate-100 dark:hover:border-slate-700'
@@ -214,18 +217,21 @@ const AIPage = () => {
             {/*khu vực chat */}
             <div className="flex-1 flex flex-col min-w-0">
                 {/* Header */}
-                <div className="bg-slate-900 px-6 py-4 text-white flex items-center gap-4 shrink-0">
-                    <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
+                <div className="bg-slate-900 px-6 max-md:px-4 py-4 text-white flex items-center gap-4 max-md:gap-3 shrink-0">
+                    <button onClick={() => setShowSidebar(true)} className="md:hidden p-2 -ml-2 rounded-xl hover:bg-white/10 transition-colors">
+                        <Menu size={20} />
+                    </button>
+                    <div className="w-10 h-10 max-md:w-8 max-md:h-8 bg-white/10 rounded-xl flex items-center justify-center">
                         <Bot className="text-amber-400" size={20} />
                     </div>
                     <div>
-                        <h2 className="text-base font-bold">EduFlow AI Assistant</h2>
-                        <p className="text-slate-400 text-[11px]">Hỏi đáp · Tóm tắt tài liệu · Phân tích</p>
+                        <h2 className="text-base max-md:text-sm font-bold">EduFlow AI Assistant</h2>
+                        <p className="text-slate-400 text-[11px] max-md:hidden">Hỏi đáp · Tóm tắt tài liệu · Phân tích</p>
                     </div>
                 </div>
 
                 {/*khu vực chat */}
-                <div className="flex-1 overflow-y-auto p-6 space-y-5 bg-slate-50/30 dark:bg-slate-900/50">
+                <div className="flex-1 overflow-y-auto p-6 max-md:p-3 space-y-5 max-md:space-y-3 bg-slate-50/30 dark:bg-slate-900/50">
                     {!historyLoaded ? (
                         <div className="flex justify-center items-center h-full">
                             <Loader2 className="animate-spin text-slate-300" size={28} />
@@ -234,7 +240,7 @@ const AIPage = () => {
                         messages.map((msg, idx) => (
                             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} key={idx}
                                 className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                                <div className={`max-w-[75%] flex gap-2.5 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                                <div className={`max-w-[75%] max-md:max-w-[90%] flex gap-2.5 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
                                     <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${msg.role === 'ai' ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'}`}>
                                         {msg.role === 'ai' ? <Bot size={16} /> : <User size={16} />}
                                     </div>
@@ -269,7 +275,7 @@ const AIPage = () => {
                 </div>
 
                 {/* Input */}
-                <div className="p-4 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-700 shrink-0 transition-colors">
+                <div className="p-4 max-md:p-3 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-700 shrink-0 transition-colors">
                     <AnimatePresence>
                         {selectedFile && (
                             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}
