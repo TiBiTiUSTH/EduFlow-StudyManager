@@ -2,7 +2,7 @@
 
 A comprehensive web-based study time management system for students built with **FastAPI**, **React**, and **PostgreSQL**.
 
-## 🚀 Features
+##  Features
 
 - ✅ **Role-Based Access Control** - Admin, Student dashboards
 - ✅ **Task Management** - Create, track, and prioritize study tasks
@@ -14,7 +14,7 @@ A comprehensive web-based study time management system for students built with *
 - ✅ **PostgreSQL Database** - Production-ready database
 - ✅ **Docker Support** - Easy deployment with docker-compose
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 ### Backend
 - **FastAPI** - Modern Python web framework
@@ -35,7 +35,7 @@ A comprehensive web-based study time management system for students built with *
 - **PostgreSQL 15** - Database container
 - **Postman** - API testing
 
-## 📋 Prerequisites
+##  Prerequisites
 
 Make sure you have the following installed:
 - **Docker Desktop** ✅
@@ -43,7 +43,7 @@ Make sure you have the following installed:
 - **Node.js 18+**
 - **Python 3.11+**
 
-## 🚀 Quick Start with Docker
+##  Quick Start with Docker
 
 The easiest way to run the entire application:
 
@@ -67,11 +67,8 @@ docker-compose exec backend python backend/scripts/init_db.py
 # API Docs: http://localhost:8000/docs
 ```
 
-**Default Admin Credentials:**
-- Username: `admin`
-- Password: `123`
 
-## 💻 Manual Setup (Without Docker)
+##  Manual Setup (Without Docker)
 
 ### Backend Setup
 
@@ -115,7 +112,7 @@ npm install
 npm run dev -- --port 8080 --host 127.0.0.1
 ```
 
-## 🧪 API Testing with Postman
+##  API Testing with Postman
 
 1. **Import Collection**
    - Open Postman
@@ -140,7 +137,7 @@ npm run dev -- --port 8080 --host 127.0.0.1
 - [API Documentation](docs/API.md) - Complete API reference
 - [Postman Collection](docs/EduFlow.postman_collection.json) - API testing
 
-## 🔑 Environment Variables
+##  Environment Variables
 
 ```env
 # Database
@@ -152,7 +149,7 @@ ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=43200
 ```
 
-## 📁 Project Structure
+##  Project Structure
 
 ```
 EduFlow-StudyManager/
@@ -184,7 +181,7 @@ EduFlow-StudyManager/
 └── README.md
 ```
 
-## 🐳 Docker Commands
+##  Docker Commands
 
 ```bash
 # Start all services
@@ -206,7 +203,7 @@ docker-compose exec backend bash
 docker-compose exec postgres psql -U eduflow_user -d eduflow_db
 ```
 
-## 🔧 Development
+##  Development
 
 ### Backend Development
 ```bash
@@ -227,7 +224,7 @@ npm install package_name
 npm run build
 ```
 
-## 🎯 Features by Role
+##  Features by Role
 
 ### Admin
 - User management
@@ -242,7 +239,7 @@ npm run build
 - Use Pomodoro timer
 - Track progress and completion rates
 
-## 🔒 Security
+##  Security
 
 - JWT token authentication
 - Password hashing with Bcrypt
@@ -250,10 +247,10 @@ npm run build
 - Role-based access control
 - Bandit security scanning
 
-## 📝 License
+##  License
 
 This project is for educational purposes.
 
-## 👨‍💻 Author
+##  Author
 
 EduFlow Study Manager - 2026
