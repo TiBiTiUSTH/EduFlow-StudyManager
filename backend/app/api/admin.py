@@ -114,5 +114,37 @@ def update_system_settings(settings: SystemSettings, current_admin: User = Depen
 
 @router.post("/cleanup")
 def cleanup_database(db: Session = Depends(get_db), current_admin: User = Depends(get_current_admin)):
-    #Xóa token hết hạn, log cũ
-    return {"status": "success", "message": "Cleaned up 12 orphaned records and 45MB of cache."}
+    """Dọn dẹp dữ liệu cũ: OTP hết hạn, thông báo cũ, cache Redis"""
+    from ..models.models import Notification
+    from datetime import datetime, timedelta
+    from ..utils.cache import redis_client
+
+    cleaned = 0
+
+    # 1. Xóa OTP code đã dùng hoặc hết hạn
+    expired_otp = db.query(User).filter(User.otp_code != None, User.is_verified == True).all()
+    for u in expired_otp:
+        u.otp_code = None
+        cleaned += 1
+
+    # 2. Xóa thông báo cũ hơn 30 ngày
+    cutoff = datetime.now() - timedelta(days=30)
+    old_notifs = db.query(Notification).filter(Notification.created_at < cutoff).delete(synchronize_session=False)
+    cleaned += old_notifs
+
+    db.commit()
+
+    # 3. Xóa cache Redis
+    cache_cleared = 0
+    try:
+        keys = redis_client.keys("cache:*")
+        if keys:
+            cache_cleared = len(keys)
+            redis_client.delete(*keys)
+    except Exception:
+        pass
+
+    return {
+        "status": "success",
+        "message": f"Đã dọn dẹp {cleaned} bản ghi orphaned và xóa {cache_cleared} cache entries."
+    }
