@@ -51,10 +51,13 @@ async def get_current_admin(current_user: User = Depends(get_current_user), db: 
 
 @router.get("/stats")
 def get_admin_stats(db: Session = Depends(get_db), current_admin: User = Depends(get_current_admin)):
-    # Đếm người dùng nhưng loại trừ những người có role là 'admin'
-    total_users = db.query(User).filter(
-        ~User.roles.any(UserRole.role.has(role_name="admin"))
-    ).count()
+    # Lấy danh sách user_id có role admin
+    admin_role = db.query(Role).filter(Role.role_name == "admin").first()
+    if admin_role:
+        admin_user_ids = [ur.user_id for ur in db.query(UserRole).filter(UserRole.role_id == admin_role.id).all()]
+        total_users = db.query(User).filter(~User.id.in_(admin_user_ids)).count()
+    else:
+        total_users = db.query(User).count()
     
     active_rooms = db.query(StudyRoom).filter(StudyRoom.is_active == True).count()
     completed_tasks = db.query(Task).filter(Task.status == "completed").count()
