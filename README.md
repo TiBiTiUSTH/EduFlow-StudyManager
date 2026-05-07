@@ -131,7 +131,7 @@ npm run dev -- --port 8080 --host 127.0.0.1
    - All requests use Bearer token authentication
    - Test CRUD operations for Tasks, Schedules, Subjects
 
-## 📚 Documentation
+##  Documentation
 
 - [Docker Setup Guide](docs/DOCKER.md) - Detailed Docker instructions
 - [API Documentation](docs/API.md) - Complete API reference
