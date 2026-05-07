@@ -33,3 +33,10 @@ backend/alembic/versions/*.pyc
 *.njsproj
 *.sln
 *.sw?
+
+# Report and Draft files
+EduFlow_Report.*
+full_report_text.txt
+sample_text.txt
+usth_logo.png
+cloud_deployment_guide.md
