@@ -76,32 +76,56 @@ def get_system_health(current_admin: User = Depends(get_current_admin)):
 
 @router.get("/logs")
 def get_admin_logs(db: Session = Depends(get_db), current_admin: User = Depends(get_current_admin)):
-    #Danh sách đăng ký mới nhất làm hoạt động
-    all_recent = db.query(User).order_by(User.id.desc()).limit(15).all()
-    recent_users = [u for u in all_recent if not any(r.role.role_name == 'admin' for r in u.roles)][:5]
-    
-    import random
     logs = []
+    
+    # 1. Real User Registrations
+    recent_users = db.query(User).order_by(User.created_at.desc()).limit(10).all()
     for u in recent_users:
+        if u.created_at:
+            dt = u.created_at.strftime("%Y-%m-%d %H:%M")
+            sort_val = u.created_at
+        else:
+            dt = "Gần đây"
+            from datetime import datetime
+            sort_val = datetime.min
+            
         logs.append({
             "id": f"log_user_{u.id}",
             "action": "New User Registration",
             "details": f"User {u.username} joined the system.",
-            "timestamp": "Vừa xong",
-            "pid": random.randint(1000, 9999)
+            "timestamp": dt,
+            "pid": u.id,  # Use User ID as PID representation instead of random
+            "sort_val": sort_val
         })
         
-    recent_tasks = db.query(Task).order_by(Task.id.desc()).limit(5).all()
+    # 2. Real Task Updates
+    recent_tasks = db.query(Task).order_by(Task.created_at.desc()).limit(10).all()
     for t in recent_tasks:
-         logs.append({
+        if t.created_at:
+            dt = t.created_at.strftime("%Y-%m-%d %H:%M")
+            sort_val = t.created_at
+        else:
+            dt = "Gần đây"
+            from datetime import datetime
+            sort_val = datetime.min
+            
+        logs.append({
             "id": f"log_task_{t.id}",
             "action": "Task Update",
-            "details": f"Task '{t.title}' was created or updated.",
-            "timestamp": "Gần đây",
-            "pid": random.randint(1000, 9999)
+            "details": f"Task '{t.title[:20]}...' was created or updated.",
+            "timestamp": dt,
+            "pid": t.id,
+            "sort_val": sort_val
         })
          
-    return logs[:10] # Trả về 10 bản ghi
+    # Sort by actual time descending
+    logs.sort(key=lambda x: x["sort_val"], reverse=True)
+    
+    # Remove sort key before returning
+    for log in logs:
+        del log["sort_val"]
+        
+    return logs[:10]
 
 @router.get("/settings")
 def get_system_settings(current_admin: User = Depends(get_current_admin)):
