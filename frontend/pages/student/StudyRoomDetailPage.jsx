@@ -44,6 +44,7 @@ export default function StudyRoomDetailPage() {
   const [copied, setCopied] = useState(false);
   const [hostLeftPopup, setHostLeftPopup] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
+  const [streamReady, setStreamReady] = useState(false);
 
   const localVideoRef = useRef(null);
   const localStreamRef = useRef(null);
@@ -56,9 +57,15 @@ export default function StudyRoomDetailPage() {
   const [remoteMediaStatus, setRemoteMediaStatus] = useState({});
 
   const attachLocalVideo = useCallback(() => {
-    if (localVideoRef.current && localStreamRef.current) {
-      localVideoRef.current.srcObject = localStreamRef.current;
-    }
+    const tryAttach = (retries = 0) => {
+      if (localVideoRef.current && localStreamRef.current) {
+        localVideoRef.current.srcObject = localStreamRef.current;
+        localVideoRef.current.play().catch(() => {});
+      } else if (retries < 10) {
+        requestAnimationFrame(() => tryAttach(retries + 1));
+      }
+    };
+    tryAttach();
   }, []);
 
   // Tính toán grid class dựa trên số người
@@ -147,6 +154,7 @@ export default function StudyRoomDetailPage() {
           const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
           localStreamRef.current = stream;
           streamReadyRef.current = true;
+          setStreamReady(true);
           attachLocalVideo();
         } catch (err) {
           console.error("Media error:", err);
@@ -276,7 +284,7 @@ export default function StudyRoomDetailPage() {
 
   useEffect(() => {
     attachLocalVideo();
-  }, [isVideoOff, isScreenSharing, attachLocalVideo]);
+  }, [isVideoOff, isScreenSharing, streamReady, attachLocalVideo]);
 
   const fetchRoom = async () => {
     try { const { data } = await axios.get(`${API}/api/room/${roomId}`); setRoom(data); } catch (e) { console.error(e); }

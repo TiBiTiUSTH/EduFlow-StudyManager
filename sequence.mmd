@@ -1,0 +1,16 @@
+sequenceDiagram
+    autonumber
+    actor S1 as Student 1
+    participant F as Frontend (React)
+    participant W as WebSocket Server (FastAPI)
+    participant R as Redis (Pub/Sub)
+    actor S2 as Student 2 (In Room)
+
+    S1->>F: Types message & clicks "Send"
+    F->>W: Sends JSON over WebSocket (type: "room_message")
+    W->>R: Publishes message to room channel
+    R-->>W: Broadcasts to all server workers
+    W-->>F: Sends message back to Student 1
+    F-->>S1: Updates chat UI
+    W-->>S2: Sends message over WebSocket
+    S2-->>S2: Updates chat UI

@@ -23,14 +23,11 @@ def send_otp_email(email_to: str, otp_code: str):
         # Phiên bản plain text dự phòng
         text_body = f"Xin chào!\n\nMã xác thực OTP của bạn là: {otp_code}\n\nMã này có hiệu lực trong vòng 5 phút.\n\nTrân trọng,\nĐội ngũ EduFlow"
 
-        # Tạo các ô OTP riêng biệt
-        otp_boxes = ""
-        for digit in otp_code:
-            otp_boxes += f'''<td style="padding:0 4px;">
-                <div style="width:52px;height:64px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);border-radius:12px;display:inline-block;text-align:center;line-height:64px;color:#ffffff;font-size:28px;font-weight:900;font-family:'Courier New',monospace;letter-spacing:0;box-shadow:0 4px 12px rgba(102,126,234,0.4);">
-                    {digit}
-                </div>
-            </td>'''
+        # Tạo mã OTP hiển thị liền nhau dễ copy
+        otp_display = ''.join([
+            f'<span style="display:inline-block;padding:0 3px;font-size:32px;font-weight:900;color:#ffffff;font-family:\'Courier New\',monospace;letter-spacing:2px;">{digit}</span>'
+            for digit in otp_code
+        ])
 
         current_year = datetime.now().year
 
@@ -60,12 +57,10 @@ def send_otp_email(email_to: str, otp_code: str):
                 Mã có hiệu lực trong <strong style="color:#ef4444;">5 phút</strong>.
             </p>
 
-            <!-- OTP Boxes -->
-            <table cellpadding="0" cellspacing="0" border="0" style="margin:0 auto 32px auto;">
-                <tr>
-                    {otp_boxes}
-                </tr>
-            </table>
+            <!-- OTP Code - hiển thị liền để dễ copy -->
+            <div style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);border-radius:16px;padding:16px 24px;display:inline-block;margin:0 auto 32px auto;box-shadow:0 8px 24px rgba(102,126,234,0.35);">
+                {otp_display}
+            </div>
 
             <div style="background:#f8f9fc;border-radius:12px;padding:16px 20px;margin:0 auto;max-width:360px;">
                 <p style="color:#9ca3af;font-size:12px;line-height:1.6;margin:0;">
