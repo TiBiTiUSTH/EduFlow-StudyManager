@@ -1,0 +1,198 @@
+List of Figures
+II.1 Use Case Diagram for Student . . . . . . . . . . . . . . . . . . . . . . . . . . 6
+II.2 Use Case Diagram for Admin . . . . . . . . . . . . . . . . . . . . . . . . . . . 8
+II.3 Sequence diagram for Login flow . . . . . . . . . . . . . . . . . . . . . . . . . 10
+II.4 Sequence diagram for Matching flow . . . . . . . . . . . . . . . . . . . . . . . 11
+II.5 Sequence diagram for Basic Chat flow . . . . . . . . . . . . . . . . . . . . . . 12
+II.6 Sequence diagram for Video Call flow . . . . . . . . . . . . . . . . . . . . . . 13
+II.7 Sequence diagram for Resource Sharing flow . . . . . . . . . . . . . . . . . . 14
+III.1 System Architecture Diagram . . . . . . . . . . . . . . . . . . . . . . . . . . . 16
+III.2 Real-time Chat Process . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 22
+III.3 Video Call Flow . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 26
+III.4 Frontend Navigation and Page Structure . . . . . . . . . . . . . . . . . . . . . 29
+III.5 Database Cluster: User Identity and Matching Tags . . . . . . . . . . . . . . . 33
+III.6 Database Cluster: Real-time Messaging Architecture . . . . . . . . . . . . . . 34
+III.7 Database Cluster: Video Call Integration . . . . . . . . . . . . . . . . . . . . . 35
+III.8 Database Cluster: Community and Moderation . . . . . . . . . . . . . . . . . 36
+IV .1 Visual representation of survey response distribution . . . . . . . . . . . . . . 38
+IV .2 Visual distribution of feature weights based on survey results . . . . . . . . . . 39
+IV .3 Login Page . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 42
+IV .4 Matching Interface with Swipe Cards . . . . . . . . . . . . . . . . . . . . . . 42
+IV .5 Real-time Chat Interface . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 43
+IV .6 Video Call Interface . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 43
+IV .7 User Profile Page . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 43
+IV .8 Resource Sharing Interface . . . . . . . . . . . . . . . . . . . . . . . . . . . . 44
+IV .9 Admin Dashboard . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 44
+iv
+V .1 Sequence diagram for Report and Moderation flow . . . . . . . . . . . . . . . 49
+V .2 Process flow for the student matching algorithm . . . . . . . . . . . . . . . . . 50
+v
+List of Tables
+II.1 Descriptions of Student Use Cases . . . . . . . . . . . . . . . . . . . . . . . . 7
+II.2 Descriptions of Admin Use Cases . . . . . . . . . . . . . . . . . . . . . . . . 9
+III.1 Password Requirements . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 19
+III.2 Feature Encoding Techniques . . . . . . . . . . . . . . . . . . . . . . . . . . . 21
+III.3 Socket.io Chat Events . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 23
+III.4 SDP Information Components . . . . . . . . . . . . . . . . . . . . . . . . . . 24
+III.5 ICE Candidate Types and Performance . . . . . . . . . . . . . . . . . . . . . . 24
+III.6 Call Status Management . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 25
+III.7 Steps for Banning a User . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 27
+IV .1 Survey Response Distribution (128 students) . . . . . . . . . . . . . . . . . . . 38
+vi
+Chapter I
+Introduction
+1 Context
+In today’s educational environment, learning is gradually shifting from being a solitary activity
+to becoming more of a collaborative process. According to Johnson and Johnson [1], collabo-
+rative learning, where students work together to solve problems or discuss concepts, can lead
+to better retention rates, improved critical thinking skills, and higher academic motivation com-
+pared to individual study. For high school students who often face considerable pressure from
+standardized testing and university entrance exams [2], having a reliable peer support network
+has become increasingly important.
+However, despite the availability of many social networking platforms such as Facebook, Insta-
+gram, or Discord, finding a suitable study partner remains quite challenging. General-purpose
+social networks are designed mainly for entertainment and socializing, which often makes them
+sources of distraction rather than productivity [3]. Moreover, finding a peer who matches spe-
+cific criteria like studying the same subjects, sharing similar academic goals, or having a com-
+patible schedule is a time-consuming and inefficient process when done manually.
+Geographical barriers also limit students to forming study groups only with their immediate
+classmates. This limitation restricts their exposure to diverse learning methods and perspectives
+that peers from other schools or regions could offer. As a result, there is a clear need for
+a specialized digital platform that bridges this gap by combining the connectivity of social
+networks with the focused tools of an educational management system.
+In this context, our team proposes the development of Study Buddy Match, a comprehensive
+web-based application designed to connect high school students based on academic compati-
+bility, fostering a safe and effective remote study environment. The following section explains
+what motivated us to pursue this project.
+1
+2 Motivation
+The decision to undertake this project is driven by both practical educational needs and technical
+aspirations.
+First, we want to solve the matching problem in education. We observed that students often
+struggle to find help for specific subjects, especially when they don’t know who to ask or where
+to look. By applying a matching algorithm similar to recommendation systems used in modern
+applications [4], we aim to make the process of finding a study partner much easier. This way,
+a student looking for help in Physics can quickly find another student who excels in Physics or
+wants to study it at the same time.
+Secondly, we want to create a distraction-free environment for studying. Unlike mainstream
+messaging apps where study chats get mixed with entertainment content, Study Buddy Match
+provides a dedicated workspace. This environment includes essential tools that general plat-
+forms don’t have, such as document sharing and real-time communication features specifically
+designed for academic collaboration.
+From a technical perspective, this project gives our development team a good opportunity to
+learn and apply advanced web technologies. Specifically, we want to use NestJS to build a
+scalable and secure backend architecture, implement real-time communication systems using
+WebSockets for instant messaging and signaling for video calls, integrate file processing capa-
+bilities to handle document uploads and resource sharing, and explore data security practices to
+protect the privacy of young users, particularly high school students.
+With these motivations in mind, we established clear objectives to guide the development pro-
+cess.
+3 Objectives
+The primary objective of this project is to develop a fully functional web application that facili-
+tates peer learning among high school students. To achieve this, we have defined both functional
+and technical goals that guide our development process.
+From a functional perspective, our main objectives are as follows. First, we want to develop an
+intelligent matching system that connects students based on academic compatibility, including
+shared subjects, compatible study schedules, and similar learning styles. Second, we aim to
+2
+implement instant messaging and video calling features to enable real-time communication and
+remote collaboration between matched study partners. Third, we plan to create a collaborative
+library where students can upload, access, and download study materials to support each other’s
+learning. Finally, we want to build a progressive moderation system that maintains community
+safety through automated warnings and temporary bans for policy violations.
+From a technical perspective, our objectives include several key components. First, we plan to
+implement JWT-based authentication to protect user data and ensure secure access control. Sec-
+ond, we aim to design a modular backend using NestJS that can handle growing user numbers
+and feature expansion. Third, we want to utilize multiple database technologies, specifically
+PostgreSQL and MongoDB, optimized for different data types and access patterns (known as
+polyglot persistence). Lastly, we aim to ensure fast response times and smooth real-time inter-
+actions through efficient caching and WebSocket connections.
+By achieving these objectives, we hope to create a platform that not only addresses the prac-
+tical challenges students face in finding study partners but also demonstrates good practices in
+modern web application development.
+3
+Chapter II
+SYSTEM ANALYSIS
+1 Overview
+This chapter explains how the system works internally, showing the main architectural patterns,
+key features, and how different components interact with each other. It describes how we turned
+the theoretical ideas from Chapter I into a working web application.
+Study Buddy Match is designed for two types of users: Students and Administrators. Students
+use the platform to find study partners through an intelligent matching algorithm, communicate
+with them via real-time chat and video calls, and share study resources. Administrators manage
+user accounts and enforce community safety through a progressive moderation system.
+The system is built using a modern technology stack. We use NestJS for the backend, Next.js
+for the frontend, and a polyglot persistence strategy that combines PostgreSQL and MongoDB.
+This architecture helps ensure the system can scale well, perform efficiently, and maintain data
+consistency across all features.
+2 System Requirements
+Overall, our application for connecting high school students to find study partners has to satisfy
+the following main requirements:
+• For Students:
+–Register and login with email verification.
+–Edit profile information and configure study preferences.
+–View potential study partners based on compatibility scores.
+–Use swipe actions to accept or decline matches.
+–Send real-time text messages with matched partners.
+–Initiate video calls for study sessions.
+–Upload and download study materials from shared library.
+• For Administrators:
+4
+–View dashboard with user statistics and platform analytics.
+–Ban or unban users who violate community rules.
+–Review and handle user reports.
+–Manage violation keywords for content filtering.
+3 UML Diagram
+This section presents the Use Case diagrams to visualize the interactions between the actors and
+the system.
+3.1 Use Case Diagram
+3.1.1 Student Use Case
+Figure II.1 shows how students interact with the Study Buddy Match system. They can log
+in securely to set up their profiles and configure study tags. The core feature allows them to
+find partners by viewing details and using swipe actions, then connect via chat or video calls.
+Additionally, students can share their resources, review, and download other students’ resources.
+5
+StudentBrowse Student<<include>>
+View Student DetailSwipe<<include>>Setup Study
+Preferences<<extend>>
+Report Student<<extend>>
+Make V ideo Call<<extend>>
+<<extend>>
+Report Message
+<<include>>CRUD Document
+<<extend>>
+Report DocumentManage DocumentChat with PartnerCheck account statusManage Profile<<extend>>Login
+Register
+Update Profile
+<<extend>>View Match List
+<<extend>>Unmatch Student<<extend>><<include>>
+Share screen<<extend>>Study Buddy MatchFigure II.1: Use Case Diagram for Student
+6
+No. Use Case Description
+1 Login Access accounts using credentials.
+2 Register Create an account.
+3 Manage Profile View and edit personal information.
+4 View Match List Display a list of students who have matched.
+5 Update Profile Change personal details or study interests.
+6 Check account status See if account is active or banned.
+7 Unmatch Student Remove a connection with a partner.
+8 Browse Student Look through potential partners.
+9 Swipe Like or skip potential partners to find match.
+10 View Student Detail Display information of a partner.
+11 Setup Study Preferences Configure criteria for finding partners.
+12 Report Student Flag accounts to admin.
+13 Chat with Partner Messaging interface for matched partners.
+14 Make Video Call Initiate live audio and video call with partner.
+15 Report Message Flag messages in chat.
+16 Share screen Display screen during video call.
+17 Manage Document Share and organize resources.
+18 CRUD Document Create, read, update, delete resources.
+19 Report Document Flag shared resources.
+Table II.1: Descriptions of Student Use Cases
+3.1.2 Admin Use Case
+Figure II.2 outlines the administrative functions for system management. Admins can monitor
+system health through a dashboard displaying user statistics and report analytics. They have the
+authority to manage the user base by banning violators, moderate content by reviewing reports,
+and proactively maintain safety by managing violation keywords and deleting inappropriate
+resources.
+7

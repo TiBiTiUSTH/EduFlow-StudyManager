@@ -34,12 +34,10 @@ backend/alembic/versions/*.pyc
 *.sln
 *.sw?
 
-# Report and Draft files
-EduFlow_Report.*
-full_report_text.txt
-sample_text.txt
-usth_logo.png
-cloud_deployment_guide.md
+# Documents & misc
+*.tex
+*.pdf
 *.mmd
-sequence*.png
-use_case*.png
+*.log
+*.aux
+*.out
