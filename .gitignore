@@ -41,3 +41,10 @@ backend/alembic/versions/*.pyc
 *.log
 *.aux
 *.out
+*.toc
+*.synctex*
+*.txt
+*.png
+!frontend/public/**
+cloud_deployment_guide.md
+usth_logo*
