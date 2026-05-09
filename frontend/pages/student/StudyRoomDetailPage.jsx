@@ -56,16 +56,20 @@ export default function StudyRoomDetailPage() {
   const [remoteStreams, setRemoteStreams] = useState({});
   const [remoteMediaStatus, setRemoteMediaStatus] = useState({});
 
+  // Callback ref - tự động gắn stream khi video element mount
+  const localVideoCallback = useCallback((node) => {
+    localVideoRef.current = node;
+    if (node && localStreamRef.current) {
+      node.srcObject = localStreamRef.current;
+      node.play().catch(() => {});
+    }
+  }, [streamReady, isVideoOff, isScreenSharing]);
+
   const attachLocalVideo = useCallback(() => {
-    const tryAttach = (retries = 0) => {
-      if (localVideoRef.current && localStreamRef.current) {
-        localVideoRef.current.srcObject = localStreamRef.current;
-        localVideoRef.current.play().catch(() => {});
-      } else if (retries < 10) {
-        requestAnimationFrame(() => tryAttach(retries + 1));
-      }
-    };
-    tryAttach();
+    if (localVideoRef.current && localStreamRef.current) {
+      localVideoRef.current.srcObject = localStreamRef.current;
+      localVideoRef.current.play().catch(() => {});
+    }
   }, []);
 
   // Tính toán grid class dựa trên số người
@@ -448,7 +452,7 @@ export default function StudyRoomDetailPage() {
                   </div>
                 </div>
               ) : (
-                <video ref={localVideoRef} autoPlay muted playsInline className={`w-full h-full object-cover ${!isScreenSharing && 'transform -scale-x-100'}`} />
+                <video ref={localVideoCallback} autoPlay muted playsInline className={`w-full h-full object-cover ${!isScreenSharing && 'transform -scale-x-100'}`} />
               )}
               <div className="absolute bottom-2 md:bottom-4 left-2 md:left-4 right-2 md:right-4 flex justify-between items-center">
                 <div className="bg-black/60 backdrop-blur-md px-2 md:px-3 py-1 md:py-1.5 rounded-lg flex items-center gap-1.5 md:gap-2">
