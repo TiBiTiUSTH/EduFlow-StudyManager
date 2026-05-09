@@ -85,8 +85,16 @@ def get_system_health(current_admin: User = Depends(get_current_admin)):
 def get_admin_logs(db: Session = Depends(get_db), current_admin: User = Depends(get_current_admin)):
     logs = []
     
-    # 1. Real User Registrations
-    recent_users = db.query(User).order_by(User.created_at.desc()).limit(10).all()
+    # 1. Real User Registrations (loại trừ admin)
+    admin_role = db.query(Role).filter(Role.role_name == "admin").first()
+    admin_user_ids = []
+    if admin_role:
+        admin_user_ids = [ur.user_id for ur in db.query(UserRole).filter(UserRole.role_id == admin_role.id).all()]
+    
+    user_query = db.query(User).order_by(User.created_at.desc())
+    if admin_user_ids:
+        user_query = user_query.filter(~User.id.in_(admin_user_ids))
+    recent_users = user_query.limit(10).all()
     for u in recent_users:
         if u.created_at:
             dt = u.created_at.strftime("%Y-%m-%d %H:%M")
