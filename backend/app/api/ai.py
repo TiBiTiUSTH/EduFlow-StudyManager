@@ -42,11 +42,12 @@ MODELS = [
     "z-ai/glm-4.5-air:free"
 ]
 
-# Model hỗ trợ Vision (đọc ảnh) - miễn phí trên OpenRouter
 VISION_MODELS = [
-    "google/gemma-3-27b-it:free",
-    "meta-llama/llama-4-scout:free",
-    "qwen/qwen-2.5-vl-72b-instruct:free",
+    "google/gemma-4-31b-it:free",
+    "google/gemma-4-26b-a4b-it:free",
+    "nvidia/nemotron-nano-12b-2-vl-instruct:free",
+    "nvidia/nemotron-3-nano-omni-instruct:free",
+    "openrouter/free",
 ]
 
 
