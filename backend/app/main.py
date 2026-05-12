@@ -130,16 +130,18 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int):
                 msg_content = message.get("message", "")
                 msg_id = message.get("id")
                 username = message.get("username", "Unknown")
+                message_type = message.get("message_type", "text")
                 if channel_id and msg_content:
                     await manager.broadcast_to_room(f"channel_{channel_id}", {
                         "type": "channel_message",
                         "channel_id": channel_id,
                         "user_id": user_id,
                         "message": msg_content,
+                        "message_type": message_type,
                         "id": msg_id,
                         "username": username,
                         "timestamp": str(__import__('datetime').datetime.now())
-                    })
+                    }, exclude_user=user_id)
 
                     # Thông báo chuông cho thành viên offline
                     try:

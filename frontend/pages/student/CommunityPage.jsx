@@ -169,7 +169,10 @@ export default function CommunityPage() {
     try {
       if (selectedChannel) {
         const { data } = await axios.post(`${API}/api/community/channels/${selectedChannel.id}/upload`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
-        socket.send({ type: 'channel_message', channel_id: selectedChannel.id, message: data.file_url, message_type: data.message_type, id: data.id, username: user.username || user.full_name });
+        // Add message locally for sender (WS will exclude_user for sender)
+        const messageText = msgInput.trim() ? `${data.file_url}|||${msgInput.trim()}` : data.file_url;
+        setChannelMessages(prev => [...prev, { id: data.id, user_id: user.id, username: user.username || user.full_name, message: messageText, message_type: data.message_type, created_at: new Date().toISOString() }]);
+        socket.send({ type: 'channel_message', channel_id: selectedChannel.id, message: messageText, message_type: data.message_type, id: data.id, username: user.username || user.full_name });
       } else if (selectedBuddy) {
         const { data } = await axios.post(`${API}/api/dm/${selectedBuddy.user_id}/upload`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
         socket.sendDirectMessage(selectedBuddy.user_id, data.file_url);
@@ -206,7 +209,9 @@ export default function CommunityPage() {
     try {
       if (selectedChannel) {
         const { data } = await axios.post(`${API}/api/community/channels/${selectedChannel.id}/upload`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
-        socket.send({ type: 'channel_message', channel_id: selectedChannel.id, message: data.file_url, message_type: data.message_type, id: data.id, username: user.username || user.full_name });
+        const messageText = caption ? `${data.file_url}|||${caption}` : data.file_url;
+        setChannelMessages(prev => [...prev, { id: data.id, user_id: user.id, username: user.username || user.full_name, message: messageText, message_type: data.message_type, created_at: new Date().toISOString() }]);
+        socket.send({ type: 'channel_message', channel_id: selectedChannel.id, message: messageText, message_type: data.message_type, id: data.id, username: user.username || user.full_name });
       } else if (selectedBuddy) {
         const { data } = await axios.post(`${API}/api/dm/${selectedBuddy.user_id}/upload`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
         socket.sendDirectMessage(selectedBuddy.user_id, data.file_url);
