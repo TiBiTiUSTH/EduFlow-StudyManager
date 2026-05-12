@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, Paperclip, Loader2, FileText, X, Trash2, Plus, MessageSquare, Upload, Menu, ArrowLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
+import ImageEditor from '@/components/UI/ImageEditor';
 
 const API = '';
 
@@ -14,6 +15,8 @@ const AIPage = () => {
     const [selectedFile, setSelectedFile] = useState(null);
     const [showSidebar, setShowSidebar] = useState(false);
     const [historyLoaded, setHistoryLoaded] = useState(false);
+    const [showImageEditor, setShowImageEditor] = useState(false);
+    const [editImageFile, setEditImageFile] = useState(null);
     const messagesEndRef = useRef(null);
 
     const token = localStorage.getItem('token');
@@ -66,7 +69,24 @@ const AIPage = () => {
     useEffect(() => { scrollToBottom(); }, [messages, loading]);
 
     const handleFileChange = (e) => {
-        if (e.target.files && e.target.files[0]) setSelectedFile(e.target.files[0]);
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            const ext = file.name.toLowerCase().split('.').pop();
+            if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp'].includes(ext)) {
+                setEditImageFile(file);
+                setShowImageEditor(true);
+            } else {
+                setSelectedFile(file);
+            }
+        }
+    };
+
+    const handleEditorSendAI = async (editedBlob, caption) => {
+        setShowImageEditor(false);
+        setEditImageFile(null);
+        const editedFile = new File([editedBlob], `annotated_${Date.now()}.png`, { type: 'image/png' });
+        setSelectedFile(editedFile);
+        if (caption) setInput(caption);
     };
 
     const createNewThread = () => {
@@ -160,6 +180,7 @@ const AIPage = () => {
     };
 
     return (
+        <>
         <div className="h-[calc(100vh-8rem)] flex rounded-[32px] max-md:rounded-none overflow-hidden border border-slate-100 dark:border-slate-700 max-md:border-0 shadow-sm bg-white dark:bg-slate-900 transition-colors relative">
             {/* Mobile overlay */}
             {showSidebar && <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-30 md:hidden" onClick={() => setShowSidebar(false)} />}
@@ -226,7 +247,7 @@ const AIPage = () => {
                     </div>
                     <div>
                         <h2 className="text-base max-md:text-sm font-bold">EduFlow AI Assistant</h2>
-                        <p className="text-slate-400 text-[11px] max-md:hidden">Hỏi đáp · Tóm tắt tài liệu · Phân tích</p>
+                        <p className="text-slate-400 text-[11px] max-md:hidden">Hỏi đáp · Tóm tắt tài liệu · Quét ảnh · Phân tích</p>
                     </div>
                 </div>
 
@@ -301,6 +322,16 @@ const AIPage = () => {
                 </div>
             </div>
         </div>
+
+        {/* Image Editor Modal */}
+        {showImageEditor && editImageFile && (
+            <ImageEditor
+                imageFile={editImageFile}
+                onSend={handleEditorSendAI}
+                onClose={() => { setShowImageEditor(false); setEditImageFile(null); }}
+            />
+        )}
+        </>
     );
 };
 

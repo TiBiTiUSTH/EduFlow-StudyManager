@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, MessageSquare, Search, Send, Hash, UserPlus, UserMinus, Check, X, Circle, ChevronRight, Plus, Lock, Globe, Menu, ArrowLeft } from 'lucide-react';
+import { Users, MessageSquare, Search, Send, Hash, UserPlus, UserMinus, Check, X, Circle, ChevronRight, Plus, Lock, Globe, Menu, ArrowLeft, Paperclip, Image, FileText } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import socket from '@/lib/socket';
+import ImageEditor from '@/components/UI/ImageEditor';
 
 const API = import.meta.env.VITE_API_URL || '';
 
@@ -40,6 +41,9 @@ export default function CommunityPage() {
   const [showKickConfirm, setShowKickConfirm] = useState(null);
   const [feedbackModal, setFeedbackModal] = useState(null);
   const [showLeftPanel, setShowLeftPanel] = useState(false);
+  const [chatFile, setChatFile] = useState(null);
+  const [showImageEditor, setShowImageEditor] = useState(false);
+  const [editImageFile, setEditImageFile] = useState(null);
   const chatEnd = useRef(null);
   const selectedChannelRef = useRef(null);
   const selectedBuddyRef = useRef(null);
@@ -153,6 +157,63 @@ export default function CommunityPage() {
     } catch (e) {
       setMsgInput(currentInput);
       setFeedbackModal({ type: 'error', message: e.response?.data?.detail || 'Lỗi khi gửi tin nhắn' });
+    }
+  };
+
+  const uploadFileToChat = async () => {
+    if (!chatFile) return;
+    const formData = new FormData();
+    formData.append('file', chatFile);
+    formData.append('user_id', user.id);
+    formData.append('caption', msgInput.trim());
+    try {
+      if (selectedChannel) {
+        const { data } = await axios.post(`${API}/api/community/channels/${selectedChannel.id}/upload`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+        socket.send({ type: 'channel_message', channel_id: selectedChannel.id, message: data.file_url, message_type: data.message_type, id: data.id, username: user.username || user.full_name });
+      } else if (selectedBuddy) {
+        const { data } = await axios.post(`${API}/api/dm/${selectedBuddy.user_id}/upload`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+        socket.sendDirectMessage(selectedBuddy.user_id, data.file_url);
+        setDmMessages(prev => [...prev, { id: data.id, sender_id: user.id, sender_name: user.username, message: data.file_url, message_type: data.message_type, created_at: new Date().toISOString() }]);
+      }
+      setChatFile(null);
+      setMsgInput('');
+    } catch (e) {
+      setFeedbackModal({ type: 'error', message: e.response?.data?.detail || 'Lỗi khi gửi file' });
+    }
+  };
+
+  // Xử lý chọn file - nếu là ảnh thì mở ImageEditor
+  const handleChatFileSelect = (file) => {
+    if (!file) return;
+    const ext = file.name.toLowerCase().split('.').pop();
+    if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp'].includes(ext)) {
+      setEditImageFile(file);
+      setShowImageEditor(true);
+    } else {
+      setChatFile(file);
+    }
+  };
+
+  // Gửi ảnh đã chỉnh sửa từ ImageEditor
+  const handleEditorSend = async (editedBlob, caption) => {
+    setShowImageEditor(false);
+    setEditImageFile(null);
+    const editedFile = new File([editedBlob], `edited_${Date.now()}.png`, { type: 'image/png' });
+    const formData = new FormData();
+    formData.append('file', editedFile);
+    formData.append('user_id', user.id);
+    formData.append('caption', caption || '');
+    try {
+      if (selectedChannel) {
+        const { data } = await axios.post(`${API}/api/community/channels/${selectedChannel.id}/upload`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+        socket.send({ type: 'channel_message', channel_id: selectedChannel.id, message: data.file_url, message_type: data.message_type, id: data.id, username: user.username || user.full_name });
+      } else if (selectedBuddy) {
+        const { data } = await axios.post(`${API}/api/dm/${selectedBuddy.user_id}/upload`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+        socket.sendDirectMessage(selectedBuddy.user_id, data.file_url);
+        setDmMessages(prev => [...prev, { id: data.id, sender_id: user.id, sender_name: user.username, message: data.file_url, message_type: data.message_type, created_at: new Date().toISOString() }]);
+      }
+    } catch (e) {
+      setFeedbackModal({ type: 'error', message: e.response?.data?.detail || 'Lỗi khi gửi ảnh' });
     }
   };
 
@@ -466,6 +527,16 @@ export default function CommunityPage() {
                             ${isMe ? 'border-slate-300 text-slate-400 rounded-br-md dark:border-slate-700' : 'border-slate-300 text-slate-400 rounded-bl-md dark:border-slate-700'}`}>
                                 Tin nhắn đã bị thu hồi
                               </div>
+                            ) : msg.message_type === 'image' ? (
+                              <div className={`rounded-2xl overflow-hidden max-w-xs ${isMe ? 'rounded-br-md' : 'rounded-bl-md'}`}>
+                                <img src={`${API}${msg.message.split('|||')[0]}`} alt="" className="w-full max-h-60 object-cover cursor-pointer hover:opacity-90 transition-opacity" onClick={() => window.open(`${API}${msg.message.split('|||')[0]}`, '_blank')} />
+                                {msg.message.includes('|||') && <p className={`px-3 py-1.5 text-xs ${isMe ? 'bg-primary-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'}`}>{msg.message.split('|||')[1]}</p>}
+                              </div>
+                            ) : msg.message_type === 'file' ? (
+                              <a href={`${API}${msg.message.split('|||')[0]}`} target="_blank" rel="noreferrer"
+                                className={`px-4 py-2.5 rounded-2xl text-sm flex items-center gap-2 ${isMe ? 'bg-primary-500 text-white rounded-br-md' : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-bl-md'}`}>
+                                <FileText size={16} /> {msg.message.split('|||')[0].split('/').pop()}
+                              </a>
                             ) : (
                               <div className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed
                             ${isMe ? 'bg-primary-500 text-white rounded-br-md' : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-bl-md'}`}>
@@ -493,11 +564,21 @@ export default function CommunityPage() {
 
                 {/* NHẬP TIN NHẮN */}
                 <div className="px-6 max-md:px-3 py-4 max-md:py-3 border-t border-slate-200 dark:border-slate-800">
+                  {chatFile && (
+                    <div className="mb-2 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 rounded-lg flex items-center justify-between w-max max-w-full text-xs font-medium border border-blue-100 dark:border-blue-800/50">
+                      <span className="flex items-center gap-1.5 truncate"><FileText size={14} /> {chatFile.name}</span>
+                      <button onClick={() => setChatFile(null)} className="ml-3 hover:bg-blue-100 dark:hover:bg-blue-800 p-0.5 rounded-full"><X size={12} /></button>
+                    </div>
+                  )}
                   <div className="flex items-center gap-3 bg-slate-100 dark:bg-slate-800 rounded-2xl px-4 py-2">
+                    <label className="p-1.5 text-slate-400 hover:text-primary-500 cursor-pointer rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors" title="Đính kèm file">
+                      <Paperclip size={18} />
+                      <input type="file" className="hidden" onChange={e => { if (e.target.files?.[0]) handleChatFileSelect(e.target.files[0]); e.target.value = ''; }} />
+                    </label>
                     <input value={msgInput} onChange={e => setMsgInput(e.target.value)}
-                      onKeyDown={e => e.key === 'Enter' && (selectedChannel ? sendChannelMsg() : sendDM())}
-                      placeholder="Nhập tin nhắn..." className="flex-1 bg-transparent outline-none text-sm text-slate-800 dark:text-slate-200 placeholder-slate-400" />
-                    <button onClick={selectedChannel ? sendChannelMsg : sendDM}
+                      onKeyDown={e => e.key === 'Enter' && (chatFile ? uploadFileToChat() : (selectedChannel ? sendChannelMsg() : sendDM()))}
+                      placeholder={chatFile ? 'Thêm chú thích (không bắt buộc)...' : 'Nhập tin nhắn...'} className="flex-1 bg-transparent outline-none text-sm text-slate-800 dark:text-slate-200 placeholder-slate-400" />
+                    <button onClick={chatFile ? uploadFileToChat : (selectedChannel ? sendChannelMsg : sendDM)}
                       className="p-2 bg-primary-500 text-white rounded-full hover:bg-primary-600 transition-colors">
                       <Send size={16} />
                     </button>
@@ -714,6 +795,15 @@ export default function CommunityPage() {
             </button>
           </motion.div>
         </div>
+      )}
+
+      {/* Image Editor Modal */}
+      {showImageEditor && editImageFile && (
+        <ImageEditor
+          imageFile={editImageFile}
+          onSend={handleEditorSend}
+          onClose={() => { setShowImageEditor(false); setEditImageFile(null); }}
+        />
       )}
     </div>
   );

@@ -1,7 +1,7 @@
 """
 Direct Message API - Chat riêng 1-1 giữa buddies
 """
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, and_
 from typing import List, Optional
@@ -10,6 +10,7 @@ from datetime import datetime
 from ..database import get_db
 from ..models.models import DirectMessage, BuddyRelationship, User
 from ..ai.ai_filter import is_toxic_message
+import os
 
 router = APIRouter(prefix="/api/dm", tags=["Direct Messages"])
 
@@ -124,3 +125,44 @@ async def send_message(buddy_id: int, user_id: int, message: str, db: Session = 
     db.commit()
     db.refresh(msg)
     return {"id": msg.id, "message": "Đã gửi"}
+
+
+@router.post("/{buddy_id}/upload")
+async def upload_file_dm(
+    buddy_id: int,
+    user_id: int = Form(...),
+    caption: str = Form(""),
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+    """Upload file (ảnh, tài liệu) trong chat 1-1 với buddy"""
+    # Lưu file
+    upload_dir = f"uploads/chat/dm_{min(user_id, buddy_id)}_{max(user_id, buddy_id)}"
+    os.makedirs(upload_dir, exist_ok=True)
+    
+    timestamp = int(datetime.now().timestamp())
+    safe_name = f"{timestamp}_{file.filename}"
+    file_path = f"{upload_dir}/{safe_name}"
+    
+    content = await file.read()
+    with open(file_path, "wb") as f:
+        f.write(content)
+    
+    ext = file.filename.lower().rsplit('.', 1)[-1] if '.' in file.filename else ''
+    if ext in ('png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp'):
+        msg_type = "image"
+    else:
+        msg_type = "file"
+    
+    file_url = f"/{upload_dir}/{safe_name}"
+    message_text = file_url if not caption else f"{file_url}|||{caption}"
+    
+    msg = DirectMessage(
+        sender_id=user_id, receiver_id=buddy_id,
+        message=message_text, message_type=msg_type
+    )
+    db.add(msg)
+    db.commit()
+    db.refresh(msg)
+    
+    return {"id": msg.id, "file_url": file_url, "message_type": msg_type, "message": "Đã gửi file"}

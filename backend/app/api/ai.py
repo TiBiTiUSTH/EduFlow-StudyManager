@@ -11,6 +11,7 @@ import os
 import io
 import httpx
 import json
+import base64
 from dotenv import load_dotenv
 from ..utils.cache import invalidate_cache
 
@@ -39,6 +40,13 @@ MODELS = [
     "stepfun/step-3.5-flash:free",
     "google/gemma-3-27b-it:free",
     "z-ai/glm-4.5-air:free"
+]
+
+# Model hỗ trợ Vision (đọc ảnh) - miễn phí trên OpenRouter
+VISION_MODELS = [
+    "google/gemma-3-27b-it:free",
+    "meta-llama/llama-4-scout:free",
+    "qwen/qwen-2.5-vl-72b-instruct:free",
 ]
 
 
@@ -70,15 +78,21 @@ def get_user_context(db: Session, user: User) -> str:
 import asyncio
 import time as _time
 
-async def _try_model(model_id: str, prompt: str, headers: dict, max_tokens: int) -> tuple:
-    """Thử một model, trả về (model_id, content) hoặc (model_id, None)"""
+async def _try_model(model_id: str, prompt, headers: dict, max_tokens: int) -> tuple:
+    """Thử một model, trả về (model_id, content) hoặc (model_id, None). prompt có thể là str hoặc list (multimodal)"""
     try:
+        # Hỗ trợ cả text thuần và multimodal content
+        if isinstance(prompt, str):
+            messages_content = prompt
+        else:
+            messages_content = prompt  # Đã là list [{"type": "text"}, {"type": "image_url"}]
+        
         payload = {
             "model": model_id,
-            "messages": [{"role": "user", "content": prompt}],
+            "messages": [{"role": "user", "content": messages_content}],
             "max_tokens": max_tokens,
         }
-        async with httpx.AsyncClient(timeout=25.0) as client:
+        async with httpx.AsyncClient(timeout=45.0) as client:
             t0 = _time.time()
             response = await client.post(AI_URL, json=payload, headers=headers)
             elapsed = round(_time.time() - t0, 1)
@@ -174,6 +188,47 @@ def call_ai(prompt: str, max_tokens: int = 4096) -> str:
         return asyncio.run(call_ai_async(prompt, max_tokens))
 
 
+async def call_ai_vision_async(image_bytes: bytes, filename: str, question: str, max_tokens: int = 4096) -> str:
+    """Gọi Vision AI để đọc/phân tích nội dung ảnh. Encode ảnh thành base64 và gửi qua multimodal API."""
+    global ACTIVE_KEYS_LIST
+    
+    # Xác định MIME type
+    ext = filename.lower().rsplit('.', 1)[-1] if '.' in filename else 'png'
+    mime_map = {'png': 'image/png', 'jpg': 'image/jpeg', 'jpeg': 'image/jpeg', 'gif': 'image/gif', 'webp': 'image/webp', 'bmp': 'image/bmp'}
+    mime_type = mime_map.get(ext, 'image/png')
+    
+    # Encode ảnh thành base64
+    b64_image = base64.b64encode(image_bytes).decode('utf-8')
+    data_url = f"data:{mime_type};base64,{b64_image}"
+    
+    # Tạo multimodal content (chuẩn OpenAI Vision format)
+    multimodal_content = [
+        {"type": "text", "text": f"{question}\n\nHãy phân tích nội dung ảnh chi tiết. Nếu ảnh chứa văn bản, hãy trích xuất toàn bộ text. Nếu là bài tập, hãy giải. Trả lời bằng cùng ngôn ngữ với câu hỏi."},
+        {"type": "image_url", "image_url": {"url": data_url}}
+    ]
+    
+    keys_to_try = list(ACTIVE_KEYS_LIST) if ACTIVE_KEYS_LIST else list(API_KEYS)
+    
+    for current_key in keys_to_try:
+        if not current_key or len(current_key) < 10:
+            continue
+        headers = {
+            "Authorization": f"Bearer {current_key}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": "http://localhost:8080",
+            "X-Title": "EduFlow",
+        }
+        
+        for model_id in VISION_MODELS:
+            _, content, err = await _try_model(model_id, multimodal_content, headers, max_tokens)
+            if content:
+                print(f"[Vision AI] Quét ảnh '{filename}' thành công bằng {model_id}")
+                return content
+            if err and any(code in err.lower() for code in ["401", "403", "402", "exceeded", "limit", "credits", "quota"]):
+                break
+    
+    raise Exception("Tất cả Vision models đều thất bại. Không thể quét ảnh.")
+
 def extract_text_from_file(content: bytes, filename: str) -> str:
     """Trích xuất text từ nhiều định dạng file: PDF, Word, text, v.v."""
     ext = filename.lower().rsplit('.', 1)[-1] if '.' in filename else ''
@@ -222,7 +277,7 @@ def extract_text_from_file(content: bytes, filename: str) -> str:
         except:
             return "[Không thể đọc file Excel, hãy thử cài openpyxl]"
     
-    # Images
+    # Images - trả về bytes để xử lý Vision AI
     if ext in ('png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp'):
         return "[IMAGE_FILE]"
     
@@ -366,6 +421,22 @@ async def chat_with_ai(
             text_content = extract_text_from_file(content, file.filename)
             
             if text_content == "[IMAGE_FILE]":
+                # Sử dụng Vision AI để đọc ảnh
+                try:
+                    vision_reply = await call_ai_vision_async(content, file.filename, message or "Hãy mô tả và phân tích nội dung trong ảnh này.")
+                    if vision_reply:
+                        # Lưu tin nhắn user
+                        user_msg = ChatHistory(user_id=current_user.id, role="user", message=message, file_name=file_name, thread_id=thread_id)
+                        db.add(user_msg)
+                        db.commit()
+                        # Lưu tin nhắn AI
+                        ai_msg = ChatHistory(user_id=current_user.id, role="ai", message=vision_reply, thread_id=thread_id)
+                        db.add(ai_msg)
+                        db.commit()
+                        return {"reply": vision_reply}
+                except Exception as ve:
+                    print(f"[Vision AI] Fallback to text: {ve}")
+                # Fallback nếu Vision không hoạt động
                 prompt = f"Người dùng gửi ảnh '{file.filename}'. Đây là file ảnh nên tôi không đọc được nội dung text. Hãy cho biết bạn đã nhận ảnh và gợi ý gì với người dùng.\n\nCâu hỏi: {message}"
             else:
                 prompt = f"Tôi có tài liệu '{file.filename}':\n\n{text_content[:12000]}\n\nCâu hỏi: {message}"
@@ -483,6 +554,17 @@ async def upload_and_analyze(
         system = f"Bạn là EduFlow AI. Thông tin học sinh:\n{user_ctx}\n\nHọc sinh gửi tài liệu '{file.filename}'."
         
         if text_content == "[IMAGE_FILE]":
+            # Sử dụng Vision AI để đọc ảnh
+            try:
+                vision_reply = await call_ai_vision_async(content, file.filename, question)
+                if vision_reply:
+                    ai_msg = ChatHistory(user_id=current_user.id, role="ai", message=vision_reply, thread_id=thread_id)
+                    db.add(ai_msg)
+                    db.commit()
+                    return {"reply": vision_reply, "file_saved": file.filename}
+            except Exception as ve:
+                print(f"[Vision AI] Fallback to text: {ve}")
+            # Fallback
             prompt = f"{system}\n\nĐây là file ảnh, tôi không đọc được nội dung text từ ảnh. Hãy cho biết đã nhận file và gợi ý.\n\nYêu cầu: {question}"
         else:
             prompt = f"{system}\n\nNội dung tài liệu:\n{text_content[:12000]}\n\nYêu cầu: {question}"
