@@ -68,10 +68,16 @@ app.include_router(admin.router)
 
 import os
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 
 os.makedirs("uploads/avatars", exist_ok=True)
 os.makedirs("uploads/resources", exist_ok=True)
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+
+# Serve frontend static assets (JS, CSS, images)
+FRONTEND_DIST = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "..", "frontend", "dist")
+if os.path.isdir(os.path.join(FRONTEND_DIST, "assets")):
+    app.mount("/assets", StaticFiles(directory=os.path.join(FRONTEND_DIST, "assets")), name="frontend_assets")
 
 
 # WebSocket Endpoint
@@ -354,7 +360,28 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int):
 
 @app.get("/")
 async def root():
+    """Serve frontend SPA"""
+    index_file = os.path.join(FRONTEND_DIST, "index.html")
+    if os.path.isfile(index_file):
+        return FileResponse(index_file)
     return {"message": "Welcome to EduFlow STMS API", "status": "running"}
+
+# Serve frontend static files (favicon, etc.)
+@app.get("/favicon.png")
+async def favicon():
+    fav = os.path.join(FRONTEND_DIST, "favicon.png")
+    if os.path.isfile(fav):
+        return FileResponse(fav)
+    return FileResponse(os.path.join(FRONTEND_DIST, "favicon.ico")) if os.path.isfile(os.path.join(FRONTEND_DIST, "favicon.ico")) else None
+
+# SPA catch-all: serve index.html for all non-API routes
+@app.get("/stms/{full_path:path}")
+async def serve_spa(full_path: str):
+    """Catch-all route for React SPA - serves index.html for client-side routing"""
+    index_file = os.path.join(FRONTEND_DIST, "index.html")
+    if os.path.isfile(index_file):
+        return FileResponse(index_file)
+    return {"error": "Frontend not built"}
 
 @app.get("/stms/health")
 async def health_check():
