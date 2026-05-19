@@ -32,17 +32,17 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_subject_channels_id'), 'subject_channels', ['id'], unique=False)
-    op.create_table('buddy_relationships',
+    op.create_table('friend_relationships',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
-    sa.Column('buddy_id', sa.Integer(), nullable=False),
+    sa.Column('friend_id', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=True),
-    sa.ForeignKeyConstraint(['buddy_id'], ['users.id'], ),
+    sa.ForeignKeyConstraint(['friend_id'], ['users.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index(op.f('ix_buddy_relationships_id'), 'buddy_relationships', ['id'], unique=False)
-    op.create_table('buddy_requests',
+    op.create_index(op.f('ix_friend_relationships_id'), 'friend_relationships', ['id'], unique=False)
+    op.create_table('friend_requests',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('sender_id', sa.Integer(), nullable=False),
     sa.Column('receiver_id', sa.Integer(), nullable=False),
@@ -54,7 +54,7 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['sender_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index(op.f('ix_buddy_requests_id'), 'buddy_requests', ['id'], unique=False)
+    op.create_index(op.f('ix_friend_requests_id'), 'friend_requests', ['id'], unique=False)
     op.create_table('direct_messages',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('sender_id', sa.Integer(), nullable=False),
@@ -171,9 +171,9 @@ def downgrade() -> None:
     op.drop_table('resources')
     op.drop_index(op.f('ix_direct_messages_id'), table_name='direct_messages')
     op.drop_table('direct_messages')
-    op.drop_index(op.f('ix_buddy_requests_id'), table_name='buddy_requests')
-    op.drop_table('buddy_requests')
-    op.drop_index(op.f('ix_buddy_relationships_id'), table_name='buddy_relationships')
-    op.drop_table('buddy_relationships')
+    op.drop_index(op.f('ix_friend_requests_id'), table_name='friend_requests')
+    op.drop_table('friend_requests')
+    op.drop_index(op.f('ix_friend_relationships_id'), table_name='friend_relationships')
+    op.drop_table('friend_relationships')
     op.drop_index(op.f('ix_subject_channels_id'), table_name='subject_channels')
     op.drop_table('subject_channels')

@@ -37,17 +37,17 @@ const MatchingPage = () => {
         setSwipingDir(dir);
         setTimeout(() => {
             if (dir === 'right') {
-                sendBuddyRequest(targetUserId);
+                sendFriendRequest(targetUserId);
             }
             setCurrentIndex(prev => prev + 1);
             setSwipingDir(null);
         }, 300);
     };
 
-    const sendBuddyRequest = async (targetId) => {
+    const sendFriendRequest = async (targetId) => {
         try {
             const config = { headers: { Authorization: `Bearer ${token}` } };
-            await axios.post(`/api/buddies/request/${targetId}`, null, {
+            await axios.post(`/api/friends/request/${targetId}`, null, {
                 headers: { Authorization: `Bearer ${token}` },
                 params: {
                     sender_id: user.id,

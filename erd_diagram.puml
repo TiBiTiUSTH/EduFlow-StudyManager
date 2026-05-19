@@ -1,0 +1,70 @@
+@startuml
+!define Table(name,desc) entity "name" as name << (T,#ADD8E6) desc >>
+!define primary_key(x) <b><color:#b8861b><&key></color> x</b>
+!define foreign_key(x) <color:#aaaaaa><&key></color> x
+
+hide circle
+skinparam linetype ortho
+
+Table(users, "users") {
+  primary_key(id) INTEGER
+  username VARCHAR
+  email VARCHAR
+  password_hash VARCHAR
+  full_name VARCHAR
+  is_active BOOLEAN
+}
+
+Table(subjects, "subjects") {
+  primary_key(id) INTEGER
+  foreign_key(user_id) INTEGER
+  subject_name VARCHAR
+  description TEXT
+  color_code VARCHAR
+}
+
+Table(tasks, "tasks") {
+  primary_key(id) INTEGER
+  foreign_key(user_id) INTEGER
+  foreign_key(subject_id) INTEGER
+  title VARCHAR
+  status VARCHAR
+  priority VARCHAR
+  due_date DATETIME
+}
+
+Table(schedules, "schedules") {
+  primary_key(id) INTEGER
+  foreign_key(user_id) INTEGER
+  foreign_key(subject_id) INTEGER
+  title VARCHAR
+  start_time DATETIME
+  end_time DATETIME
+}
+
+Table(pomodoro_sessions, "pomodoro_sessions") {
+  primary_key(id) INTEGER
+  foreign_key(user_id) INTEGER
+  foreign_key(task_id) INTEGER
+  work_duration INTEGER
+  session_date DATETIME
+}
+
+Table(study_rooms, "study_rooms") {
+  primary_key(id) INTEGER
+  foreign_key(host_id) INTEGER
+  room_code VARCHAR
+  name VARCHAR
+  max_participants INTEGER
+}
+
+users "1" -- "0..*" subjects
+users "1" -- "0..*" tasks
+users "1" -- "0..*" schedules
+users "1" -- "0..*" pomodoro_sessions
+users "1" -- "0..*" study_rooms
+subjects "1" -- "0..*" tasks
+subjects "1" -- "0..*" schedules
+tasks "1" -- "0..*" pomodoro_sessions
+
+@enduml

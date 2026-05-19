@@ -1,0 +1,34 @@
+@startuml
+skinparam style strictuml
+skinparam defaultFontName Arial
+skinparam monochrome true
+skinparam ActivityBackgroundColor white
+
+start
+
+:User A types a message and clicks Send;
+:Client A sends message via WebSocket;
+:Backend receives WebSocket event;
+
+:Pass message to AI Toxicity Filter;
+:Stage 1: Check Blacklist & Teencode;
+:Stage 2: TF-IDF & Logistic Regression;
+
+if (Is message toxic? (P > 55%)) then (Yes)
+  :Block message;
+  :Send warning back to User A;
+  stop
+else (No)
+  :Save message to PostgreSQL Database;
+  
+  if (Is User B currently online?) then (Yes)
+    :Server forwards message to User B via WebSocket;
+    :Client B updates Chat UI;
+  else (No)
+    :Keep message in Database;
+    :User B will receive it upon next login;
+  endif
+endif
+
+stop
+@enduml

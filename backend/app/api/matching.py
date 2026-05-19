@@ -25,7 +25,7 @@ class MatchingSuggestion(BaseModel):
 
 
 @router.get("/suggestions", response_model=List[MatchingSuggestion])
-async def get_buddy_suggestions(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+async def get_friend_suggestions(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
     """
     Gợi ý bạn học dựa trên DỮ LIỆU THẬT từ database:
     - Môn học chung (trọng số 0.50)
@@ -39,20 +39,20 @@ async def get_buddy_suggestions(db: Session = Depends(get_db), current_user: mod
     my_subject_names = set(s.subject_name.lower().strip() for s in my_subjects if s.subject_name)
     exclude_ids = {current_user.id}
 
-    existing_rels = db.query(models.BuddyRelationship).filter(
+    existing_rels = db.query(models.FriendRelationship).filter(
         or_(
-            models.BuddyRelationship.user_id == current_user.id,
-            models.BuddyRelationship.buddy_id == current_user.id
+            models.FriendRelationship.user_id == current_user.id,
+            models.FriendRelationship.friend_id == current_user.id
         )
     ).all()
     for rel in existing_rels:
         exclude_ids.add(rel.user_id)
-        exclude_ids.add(rel.buddy_id)
+        exclude_ids.add(rel.friend_id)
 
-    pending_reqs = db.query(models.BuddyRequest).filter(
+    pending_reqs = db.query(models.FriendRequest).filter(
         or_(
-            and_(models.BuddyRequest.sender_id == current_user.id, models.BuddyRequest.status == "pending"),
-            and_(models.BuddyRequest.receiver_id == current_user.id, models.BuddyRequest.status == "pending")
+            and_(models.FriendRequest.sender_id == current_user.id, models.FriendRequest.status == "pending"),
+            and_(models.FriendRequest.receiver_id == current_user.id, models.FriendRequest.status == "pending")
         )
     ).all()
     for req in pending_reqs:

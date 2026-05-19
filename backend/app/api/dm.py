@@ -1,5 +1,5 @@
 """
-Direct Message API - Chat riêng 1-1 giữa buddies
+Direct Message API - Chat riêng 1-1 giữa friends
 """
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
@@ -8,7 +8,7 @@ from typing import List, Optional
 from pydantic import BaseModel
 from datetime import datetime
 from ..database import get_db
-from ..models.models import DirectMessage, BuddyRelationship, User
+from ..models.models import DirectMessage, FriendRelationship, User
 from ..ai.ai_filter import is_toxic_message
 import os
 
@@ -27,9 +27,9 @@ class DMOut(BaseModel):
     created_at: datetime
 
 class ConversationOut(BaseModel):
-    buddy_id: int
-    buddy_name: str
-    buddy_avatar: Optional[str] = None
+    friend_id: int
+    friend_name: str
+    friend_avatar: Optional[str] = None
     last_message: Optional[str] = None
     last_time: Optional[datetime] = None
     unread_count: int = 0
@@ -37,36 +37,36 @@ class ConversationOut(BaseModel):
 
 @router.get("/conversations", response_model=List[ConversationOut])
 async def get_conversations(user_id: int, db: Session = Depends(get_db)):
-    """Lấy danh sách conversations (buddies có tin nhắn)"""
-    buddies = db.query(BuddyRelationship).filter(
-        BuddyRelationship.user_id == user_id
+    """Lấy danh sách conversations (friends có tin nhắn)"""
+    friends = db.query(FriendRelationship).filter(
+        FriendRelationship.user_id == user_id
     ).all()
 
     result = []
-    for rel in buddies:
-        buddy = db.query(User).filter(User.id == rel.buddy_id).first()
-        if not buddy:
+    for rel in friends:
+        friend = db.query(User).filter(User.id == rel.friend_id).first()
+        if not friend:
             continue
 
         # Tin nhắn cuối
         last_msg = db.query(DirectMessage).filter(
             or_(
-                and_(DirectMessage.sender_id == user_id, DirectMessage.receiver_id == rel.buddy_id),
-                and_(DirectMessage.sender_id == rel.buddy_id, DirectMessage.receiver_id == user_id)
+                and_(DirectMessage.sender_id == user_id, DirectMessage.receiver_id == rel.friend_id),
+                and_(DirectMessage.sender_id == rel.friend_id, DirectMessage.receiver_id == user_id)
             )
         ).order_by(DirectMessage.created_at.desc()).first()
 
         # Số tin chưa đọc
         unread = db.query(DirectMessage).filter(
-            DirectMessage.sender_id == rel.buddy_id,
+            DirectMessage.sender_id == rel.friend_id,
             DirectMessage.receiver_id == user_id,
             DirectMessage.is_read == False
         ).count()
 
         result.append(ConversationOut(
-            buddy_id=buddy.id,
-            buddy_name=buddy.full_name or buddy.username,
-            buddy_avatar=buddy.avatar_url,
+            friend_id=friend.id,
+            friend_name=friend.full_name or friend.username,
+            friend_avatar=friend.avatar_url,
             last_message=last_msg.message if last_msg else None,
             last_time=last_msg.created_at if last_msg else rel.created_at,
             unread_count=unread
@@ -76,19 +76,19 @@ async def get_conversations(user_id: int, db: Session = Depends(get_db)):
     return result
 
 
-@router.get("/{buddy_id}/messages", response_model=List[DMOut])
-async def get_messages(buddy_id: int, user_id: int, limit: int = 50, db: Session = Depends(get_db)):
-    """Lấy lịch sử chat 1-1 với buddy"""
+@router.get("/{friend_id}/messages", response_model=List[DMOut])
+async def get_messages(friend_id: int, user_id: int, limit: int = 50, db: Session = Depends(get_db)):
+    """Lấy lịch sử chat 1-1 với friend"""
     messages = db.query(DirectMessage).filter(
         or_(
-            and_(DirectMessage.sender_id == user_id, DirectMessage.receiver_id == buddy_id),
-            and_(DirectMessage.sender_id == buddy_id, DirectMessage.receiver_id == user_id)
+            and_(DirectMessage.sender_id == user_id, DirectMessage.receiver_id == friend_id),
+            and_(DirectMessage.sender_id == friend_id, DirectMessage.receiver_id == user_id)
         )
     ).order_by(DirectMessage.created_at.desc()).limit(limit).all()
 
     # Đánh dấu đã đọc
     db.query(DirectMessage).filter(
-        DirectMessage.sender_id == buddy_id,
+        DirectMessage.sender_id == friend_id,
         DirectMessage.receiver_id == user_id,
         DirectMessage.is_read == False
     ).update({"is_read": True, "read_at": datetime.now()})
@@ -107,8 +107,8 @@ async def get_messages(buddy_id: int, user_id: int, limit: int = 50, db: Session
     return result
 
 
-@router.post("/{buddy_id}/send")
-async def send_message(buddy_id: int, user_id: int, message: str, db: Session = Depends(get_db)):
+@router.post("/{friend_id}/send")
+async def send_message(friend_id: int, user_id: int, message: str, db: Session = Depends(get_db)):
     """Gửi tin nhắn (HTTP fallback, thường dùng WebSocket)"""
     # Bộ lọc AI kiểm tra
     if is_toxic_message(message):
@@ -118,7 +118,7 @@ async def send_message(buddy_id: int, user_id: int, message: str, db: Session = 
         )
 
     msg = DirectMessage(
-        sender_id=user_id, receiver_id=buddy_id,
+        sender_id=user_id, receiver_id=friend_id,
         message=message, message_type="text"
     )
     db.add(msg)
@@ -127,17 +127,17 @@ async def send_message(buddy_id: int, user_id: int, message: str, db: Session = 
     return {"id": msg.id, "message": "Đã gửi"}
 
 
-@router.post("/{buddy_id}/upload")
+@router.post("/{friend_id}/upload")
 async def upload_file_dm(
-    buddy_id: int,
+    friend_id: int,
     user_id: int = Form(...),
     caption: str = Form(""),
     file: UploadFile = File(...),
     db: Session = Depends(get_db)
 ):
-    """Upload file (ảnh, tài liệu) trong chat 1-1 với buddy"""
+    """Upload file (ảnh, tài liệu) trong chat 1-1 với friend"""
     # Lưu file
-    upload_dir = f"uploads/chat/dm_{min(user_id, buddy_id)}_{max(user_id, buddy_id)}"
+    upload_dir = f"uploads/chat/dm_{min(user_id, friend_id)}_{max(user_id, friend_id)}"
     os.makedirs(upload_dir, exist_ok=True)
     
     timestamp = int(datetime.now().timestamp())
@@ -158,7 +158,7 @@ async def upload_file_dm(
     message_text = file_url if not caption else f"{file_url}|||{caption}"
     
     msg = DirectMessage(
-        sender_id=user_id, receiver_id=buddy_id,
+        sender_id=user_id, receiver_id=friend_id,
         message=message_text, message_type=msg_type
     )
     db.add(msg)

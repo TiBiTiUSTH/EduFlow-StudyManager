@@ -213,7 +213,7 @@ async def delete_my_account(
         StudySession, SubjectStatistic, Note, Goal, GoalProgressLog, UserRole,
         UserProfile, UserPreference, UserAchievement, TaskGroup, SystemSetting,
         StudyReport, Feedback, ActivityLog,
-        BuddyRequest, BuddyRelationship, DirectMessage,
+        FriendRequest, FriendRelationship, DirectMessage,
         SubjectChannelMember, SubjectChannelMessage, ChannelJoinRequest, SubjectChannel,
         StudyRoomMember, StudyRoomMessage, StudyRoom,
         Resource, TaskChatHistory
@@ -264,11 +264,11 @@ async def delete_my_account(
     ).delete(synchronize_session=False)
 
     # Yêu cầu & Quan hệ
-    db.query(BuddyRequest).filter(
-        (BuddyRequest.sender_id == uid) | (BuddyRequest.receiver_id == uid)
+    db.query(FriendRequest).filter(
+        (FriendRequest.sender_id == uid) | (FriendRequest.receiver_id == uid)
     ).delete(synchronize_session=False)
-    db.query(BuddyRelationship).filter(
-        (BuddyRelationship.user_id == uid) | (BuddyRelationship.buddy_id == uid)
+    db.query(FriendRelationship).filter(
+        (FriendRelationship.user_id == uid) | (FriendRelationship.friend_id == uid)
     ).delete(synchronize_session=False)
 
     # Tin nhắn Channel 

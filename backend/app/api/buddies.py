@@ -1,5 +1,5 @@
 """
-Buddy System API - Kết bạn học
+Friend System API - Kết bạn học
 """
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -8,13 +8,13 @@ from typing import List, Optional
 from pydantic import BaseModel
 from datetime import datetime
 from ..database import get_db
-from ..models.models import BuddyRequest, BuddyRelationship, User, UserProfile, Notification
+from ..models.models import FriendRequest, FriendRelationship, User, UserProfile, Notification
 from .websocket import manager
 
-router = APIRouter(prefix="/api/buddies", tags=["Buddies"])
+router = APIRouter(prefix="/api/friends", tags=["Friends"])
 
 
-class BuddyOut(BaseModel):
+class FriendOut(BaseModel):
     user_id: int
     username: str
     full_name: Optional[str] = None
@@ -41,36 +41,36 @@ class BrowseUserOut(BaseModel):
     school_name: Optional[str] = None
     grade_level: Optional[str] = None
     study_goal: Optional[str] = None
-    is_buddy: bool = False
+    is_friend: bool = False
     request_sent: bool = False
 
 
 @router.post("/request/{target_user_id}")
-async def send_buddy_request(target_user_id: int, sender_id: int, message: str = "", db: Session = Depends(get_db)):
+async def send_friend_request(target_user_id: int, sender_id: int, message: str = "", db: Session = Depends(get_db)):
     """Gửi lời mời kết bạn"""
     if sender_id == target_user_id:
         raise HTTPException(status_code=400, detail="Không thể kết bạn với chính mình")
 
     # Kiểm tra quan hệ
-    existing = db.query(BuddyRelationship).filter(
+    existing = db.query(FriendRelationship).filter(
         or_(
-            and_(BuddyRelationship.user_id == sender_id, BuddyRelationship.buddy_id == target_user_id),
-            and_(BuddyRelationship.user_id == target_user_id, BuddyRelationship.buddy_id == sender_id)
+            and_(FriendRelationship.user_id == sender_id, FriendRelationship.friend_id == target_user_id),
+            and_(FriendRelationship.user_id == target_user_id, FriendRelationship.friend_id == sender_id)
         )
     ).first()
     if existing:
         raise HTTPException(status_code=400, detail="Đã là bạn học rồi")
 
     # Kiểm tra lời mời
-    pending = db.query(BuddyRequest).filter(
-        BuddyRequest.sender_id == sender_id,
-        BuddyRequest.receiver_id == target_user_id,
-        BuddyRequest.status == "pending"
+    pending = db.query(FriendRequest).filter(
+        FriendRequest.sender_id == sender_id,
+        FriendRequest.receiver_id == target_user_id,
+        FriendRequest.status == "pending"
     ).first()
     if pending:
         raise HTTPException(status_code=400, detail="Đã gửi lời mời rồi")
 
-    request = BuddyRequest(
+    request = FriendRequest(
         sender_id=sender_id, receiver_id=target_user_id,
         message=message or "Chào bạn! Mình muốn kết bạn học cùng nhau.",
         status="pending"
@@ -81,7 +81,7 @@ async def send_buddy_request(target_user_id: int, sender_id: int, message: str =
     sender = db.query(User).filter(User.id == sender_id).first()
     notif = Notification(
         user_id=target_user_id, sender_id=sender_id,
-        notification_type="buddy_request",
+        notification_type="friend_request",
         title="Lời mời kết bạn",
         message=f"{sender.full_name or sender.username} muốn kết bạn học với bạn",
         link_url="/stms/student/community/friends"
@@ -99,7 +99,7 @@ async def send_buddy_request(target_user_id: int, sender_id: int, message: str =
                 "id": notif.id,
                 "title": notif.title,
                 "message": notif.message,
-                "notification_type": "buddy_request",
+                "notification_type": "friend_request",
                 "link_url": notif.link_url,
                 "is_read": False,
                 "created_at": str(notif.created_at)
@@ -110,9 +110,9 @@ async def send_buddy_request(target_user_id: int, sender_id: int, message: str =
 
 
 @router.put("/request/{request_id}/accept")
-async def accept_buddy_request(request_id: int, db: Session = Depends(get_db)):
+async def accept_friend_request(request_id: int, db: Session = Depends(get_db)):
     """Chấp nhận lời mời"""
-    request = db.query(BuddyRequest).filter(BuddyRequest.id == request_id).first()
+    request = db.query(FriendRequest).filter(FriendRequest.id == request_id).first()
     if not request:
         raise HTTPException(status_code=404, detail="Lời mời không tồn tại")
     if request.status != "pending":
@@ -122,14 +122,14 @@ async def accept_buddy_request(request_id: int, db: Session = Depends(get_db)):
     request.responded_at = datetime.now()
 
     # Tạo quan hệ nếu chưa có
-    existing_rel = db.query(BuddyRelationship).filter(
-        BuddyRelationship.user_id == request.sender_id, 
-        BuddyRelationship.buddy_id == request.receiver_id
+    existing_rel = db.query(FriendRelationship).filter(
+        FriendRelationship.user_id == request.sender_id, 
+        FriendRelationship.friend_id == request.receiver_id
     ).first()
     
     if not existing_rel:
-        rel1 = BuddyRelationship(user_id=request.sender_id, buddy_id=request.receiver_id)
-        rel2 = BuddyRelationship(user_id=request.receiver_id, buddy_id=request.sender_id)
+        rel1 = FriendRelationship(user_id=request.sender_id, friend_id=request.receiver_id)
+        rel2 = FriendRelationship(user_id=request.receiver_id, friend_id=request.sender_id)
         db.add(rel1)
         db.add(rel2)
 
@@ -137,7 +137,7 @@ async def accept_buddy_request(request_id: int, db: Session = Depends(get_db)):
     receiver = db.query(User).filter(User.id == request.receiver_id).first()
     notif = Notification(
         user_id=request.sender_id, sender_id=request.receiver_id,
-        notification_type="buddy_accepted",
+        notification_type="friend_accepted",
         title="Kết bạn thành công!",
         message=f"{receiver.full_name or receiver.username} đã chấp nhận lời mời kết bạn",
         link_url="/stms/student/community/friends"
@@ -155,7 +155,7 @@ async def accept_buddy_request(request_id: int, db: Session = Depends(get_db)):
                 "id": notif.id,
                 "title": notif.title,
                 "message": notif.message,
-                "notification_type": "buddy_accepted",
+                "notification_type": "friend_accepted",
                 "link_url": notif.link_url,
                 "is_read": False,
                 "created_at": str(notif.created_at)
@@ -166,9 +166,9 @@ async def accept_buddy_request(request_id: int, db: Session = Depends(get_db)):
 
 
 @router.put("/request/{request_id}/reject")
-async def reject_buddy_request(request_id: int, db: Session = Depends(get_db)):
+async def reject_friend_request(request_id: int, db: Session = Depends(get_db)):
     """Từ chối lời mời"""
-    request = db.query(BuddyRequest).filter(BuddyRequest.id == request_id).first()
+    request = db.query(FriendRequest).filter(FriendRequest.id == request_id).first()
     if not request:
         raise HTTPException(status_code=404, detail="Lời mời không tồn tại")
     request.status = "rejected"
@@ -177,21 +177,21 @@ async def reject_buddy_request(request_id: int, db: Session = Depends(get_db)):
     return {"message": "Đã từ chối lời mời"}
 
 
-@router.get("/my-buddies", response_model=List[BuddyOut])
-async def get_my_buddies(user_id: int, db: Session = Depends(get_db)):
+@router.get("/my-friends", response_model=List[FriendOut])
+async def get_my_friends(user_id: int, db: Session = Depends(get_db)):
     """Danh sách bạn học của tôi"""
-    relationships = db.query(BuddyRelationship).filter(
-        BuddyRelationship.user_id == user_id
+    relationships = db.query(FriendRelationship).filter(
+        FriendRelationship.user_id == user_id
     ).all()
 
     result = []
     for rel in relationships:
-        buddy = db.query(User).filter(User.id == rel.buddy_id).first()
-        if buddy:
-            profile = db.query(UserProfile).filter(UserProfile.user_id == buddy.id).first()
-            result.append(BuddyOut(
-                user_id=buddy.id, username=buddy.username,
-                full_name=buddy.full_name, avatar_url=buddy.avatar_url,
+        friend = db.query(User).filter(User.id == rel.friend_id).first()
+        if friend:
+            profile = db.query(UserProfile).filter(UserProfile.user_id == friend.id).first()
+            result.append(FriendOut(
+                user_id=friend.id, username=friend.username,
+                full_name=friend.full_name, avatar_url=friend.avatar_url,
                 school_name=profile.school_name if profile else None,
                 grade_level=profile.grade_level if profile else None,
                 since=rel.created_at
@@ -202,10 +202,10 @@ async def get_my_buddies(user_id: int, db: Session = Depends(get_db)):
 @router.get("/requests", response_model=List[RequestOut])
 async def get_pending_requests(user_id: int, db: Session = Depends(get_db)):
     """Lời mời kết bạn đang chờ"""
-    requests = db.query(BuddyRequest).filter(
-        BuddyRequest.receiver_id == user_id,
-        BuddyRequest.status == "pending"
-    ).order_by(BuddyRequest.created_at.desc()).all()
+    requests = db.query(FriendRequest).filter(
+        FriendRequest.receiver_id == user_id,
+        FriendRequest.status == "pending"
+    ).order_by(FriendRequest.created_at.desc()).all()
 
     result = []
     for req in requests:
@@ -219,42 +219,42 @@ async def get_pending_requests(user_id: int, db: Session = Depends(get_db)):
     return result
 
 
-@router.delete("/{buddy_id}")
-async def remove_buddy(buddy_id: int, user_id: int, db: Session = Depends(get_db)):
+@router.delete("/{friend_id}")
+async def remove_friend(friend_id: int, user_id: int, db: Session = Depends(get_db)):
     """Hủy kết bạn - xóa sạch toàn bộ: quan hệ, tin nhắn, lời mời, thông báo"""
     from ..models.models import DirectMessage, Notification
 
     # 1. Xóa toàn bộ tin nhắn
     db.query(DirectMessage).filter(
         or_(
-            and_(DirectMessage.sender_id == user_id, DirectMessage.receiver_id == buddy_id),
-            and_(DirectMessage.sender_id == buddy_id, DirectMessage.receiver_id == user_id)
+            and_(DirectMessage.sender_id == user_id, DirectMessage.receiver_id == friend_id),
+            and_(DirectMessage.sender_id == friend_id, DirectMessage.receiver_id == user_id)
         )
     ).delete(synchronize_session=False)
 
     # 2. Xóa toàn bộ lời mời kết bạn 
-    db.query(BuddyRequest).filter(
+    db.query(FriendRequest).filter(
         or_(
-            and_(BuddyRequest.sender_id == user_id, BuddyRequest.receiver_id == buddy_id),
-            and_(BuddyRequest.sender_id == buddy_id, BuddyRequest.receiver_id == user_id)
+            and_(FriendRequest.sender_id == user_id, FriendRequest.receiver_id == friend_id),
+            and_(FriendRequest.sender_id == friend_id, FriendRequest.receiver_id == user_id)
         )
     ).delete(synchronize_session=False)
 
     # 3. Xóa thông báo kết bạn
     db.query(Notification).filter(
         or_(
-            and_(Notification.user_id == user_id, Notification.sender_id == buddy_id,
-                 Notification.notification_type.in_(["buddy_request", "buddy_accepted", "direct_message"])),
-            and_(Notification.user_id == buddy_id, Notification.sender_id == user_id,
-                 Notification.notification_type.in_(["buddy_request", "buddy_accepted", "direct_message"]))
+            and_(Notification.user_id == user_id, Notification.sender_id == friend_id,
+                 Notification.notification_type.in_(["friend_request", "friend_accepted", "direct_message"])),
+            and_(Notification.user_id == friend_id, Notification.sender_id == user_id,
+                 Notification.notification_type.in_(["friend_request", "friend_accepted", "direct_message"]))
         )
     ).delete(synchronize_session=False)
 
     # 4. Xóa bạn bè
-    db.query(BuddyRelationship).filter(
+    db.query(FriendRelationship).filter(
         or_(
-            and_(BuddyRelationship.user_id == user_id, BuddyRelationship.buddy_id == buddy_id),
-            and_(BuddyRelationship.user_id == buddy_id, BuddyRelationship.buddy_id == user_id)
+            and_(FriendRelationship.user_id == user_id, FriendRelationship.friend_id == friend_id),
+            and_(FriendRelationship.user_id == friend_id, FriendRelationship.friend_id == user_id)
         )
     ).delete(synchronize_session=False)
 
@@ -275,15 +275,15 @@ async def browse_users(user_id: int, subject: Optional[str] = None, grade: Optio
     users = query.limit(limit).all()
     
     # Danh sách bạn
-    buddy_ids = set()
-    rels = db.query(BuddyRelationship).filter(BuddyRelationship.user_id == user_id).all()
+    friend_ids = set()
+    rels = db.query(FriendRelationship).filter(FriendRelationship.user_id == user_id).all()
     for r in rels:
-        buddy_ids.add(r.buddy_id)
+        friend_ids.add(r.friend_id)
 
     # Danh sách pending
     pending_ids = set()
-    pending = db.query(BuddyRequest).filter(
-        BuddyRequest.sender_id == user_id, BuddyRequest.status == "pending"
+    pending = db.query(FriendRequest).filter(
+        FriendRequest.sender_id == user_id, FriendRequest.status == "pending"
     ).all()
     for p in pending:
         pending_ids.add(p.receiver_id)
@@ -297,7 +297,7 @@ async def browse_users(user_id: int, subject: Optional[str] = None, grade: Optio
             school_name=profile.school_name if profile else None,
             grade_level=profile.grade_level if profile else None,
             study_goal=profile.study_goal if profile else None,
-            is_buddy=u.id in buddy_ids,
+            is_friend=u.id in friend_ids,
             request_sent=u.id in pending_ids
         ))
     return result

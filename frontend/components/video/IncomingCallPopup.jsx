@@ -23,7 +23,7 @@ export default function IncomingCallPopup() {
             </div>
             <div>
               <p className="text-sm text-slate-500 font-medium">Cuộc gọi đến</p>
-              <p className="text-lg font-black text-slate-900">{remoteUsername || 'Study Buddy'}</p>
+              <p className="text-lg font-black text-slate-900">{remoteUsername || 'Study Friend'}</p>
             </div>
           </div>
 

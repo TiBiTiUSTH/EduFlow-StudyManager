@@ -86,8 +86,8 @@ const NotificationCenter = ({ isOpen, onClose }) => {
             case 'join_request': return 'bg-purple-100 text-purple-600';
             case 'community': return 'bg-emerald-100 text-emerald-600';
             case 'community_message': return 'bg-blue-100 text-blue-600';
-            case 'buddy_request': return 'bg-indigo-100 text-indigo-600';
-            case 'buddy_accepted': return 'bg-green-100 text-green-600';
+            case 'friend_request': return 'bg-indigo-100 text-indigo-600';
+            case 'friend_accepted': return 'bg-green-100 text-green-600';
             case 'direct_message': return 'bg-cyan-100 text-cyan-600';
             default: return 'bg-blue-100 text-blue-600';
         }
@@ -100,8 +100,8 @@ const NotificationCenter = ({ isOpen, onClose }) => {
             case 'join_request': return <UserPlus size={16} />;
             case 'community': return <Users size={16} />;
             case 'community_message': return <MessageSquare size={16} />;
-            case 'buddy_request': return <UserPlus size={16} />;
-            case 'buddy_accepted': return <Check size={16} />;
+            case 'friend_request': return <UserPlus size={16} />;
+            case 'friend_accepted': return <Check size={16} />;
             case 'direct_message': return <MessageSquare size={16} />;
             default: return <Bell size={16} />;
         }

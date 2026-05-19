@@ -489,7 +489,7 @@ class TaskChatHistory(Base):
     user = relationship("User", foreign_keys=[user_id])
     task = relationship("Task")
 
-# 9. Subject Community & Buddy System
+# 9. Subject Community & Friend System
 
 
 class SubjectChannel(Base):
@@ -547,9 +547,9 @@ class ChannelJoinRequest(Base):
     channel = relationship("SubjectChannel", back_populates="join_requests")
     user = relationship("User", foreign_keys=[user_id])
 
-class BuddyRequest(Base):
+class FriendRequest(Base):
     """Lời mời kết bạn học"""
-    __tablename__ = "buddy_requests"
+    __tablename__ = "friend_requests"
     id = Column(Integer, primary_key=True, index=True)
     sender_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     receiver_id = Column(Integer, ForeignKey("users.id"), nullable=False)
@@ -561,19 +561,19 @@ class BuddyRequest(Base):
     sender = relationship("User", foreign_keys=[sender_id])
     receiver = relationship("User", foreign_keys=[receiver_id])
 
-class BuddyRelationship(Base):
+class FriendRelationship(Base):
     """Quan hệ bạn học (sau khi accept request)"""
-    __tablename__ = "buddy_relationships"
+    __tablename__ = "friend_relationships"
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    buddy_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    friend_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     created_at = Column(DateTime, server_default=func.now())
 
     user = relationship("User", foreign_keys=[user_id])
-    buddy = relationship("User", foreign_keys=[buddy_id])
+    friend = relationship("User", foreign_keys=[friend_id])
 
 class DirectMessage(Base):
-    """Tin nhắn riêng 1-1 giữa buddy"""
+    """Tin nhắn riêng 1-1 giữa friends"""
     __tablename__ = "direct_messages"
     id = Column(Integer, primary_key=True, index=True)
     sender_id = Column(Integer, ForeignKey("users.id"), nullable=False)

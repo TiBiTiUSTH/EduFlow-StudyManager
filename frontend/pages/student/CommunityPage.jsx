@@ -23,11 +23,11 @@ export default function CommunityPage() {
   const getTabFromPath = () => location.pathname.endsWith('/friends') ? 'friends' : 'group';
   const [activeTab, setActiveTab] = useState(getTabFromPath());
   const [channels, setChannels] = useState([]);
-  const [buddies, setBuddies] = useState([]);
+  const [friends, setFriends] = useState([]);
   const [requests, setRequests] = useState([]);
   const [selectedChannel, setSelectedChannel] = useState(null);
   const [channelMessages, setChannelMessages] = useState([]);
-  const [selectedBuddy, setSelectedBuddy] = useState(null);
+  const [selectedFriend, setSelectedFriend] = useState(null);
   const [dmMessages, setDmMessages] = useState([]);
   const [msgInput, setMsgInput] = useState('');
   const [showCreateChannel, setShowCreateChannel] = useState(false);
@@ -37,7 +37,7 @@ export default function CommunityPage() {
   const [joinRequests, setJoinRequests] = useState([]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
   const [showRecallConfirm, setShowRecallConfirm] = useState(null);
-  const [showRemoveBuddyConfirm, setShowRemoveBuddyConfirm] = useState(null);
+  const [showRemoveFriendConfirm, setShowRemoveFriendConfirm] = useState(null);
   const [showKickConfirm, setShowKickConfirm] = useState(null);
   const [feedbackModal, setFeedbackModal] = useState(null);
   const [showLeftPanel, setShowLeftPanel] = useState(false);
@@ -46,7 +46,7 @@ export default function CommunityPage() {
   const [editImageFile, setEditImageFile] = useState(null);
   const chatEnd = useRef(null);
   const selectedChannelRef = useRef(null);
-  const selectedBuddyRef = useRef(null);
+  const selectedFriendRef = useRef(null);
 
   // Lấy activeTab từ đường dẫn URL
   useEffect(() => {
@@ -57,7 +57,7 @@ export default function CommunityPage() {
     if (!user?.id) return;
     socket.connect(user.id);
     fetchChannels();
-    fetchBuddies();
+    fetchFriends();
     fetchRequests();
 
     const unsub = socket.on('channel_message', (data) => {
@@ -66,7 +66,7 @@ export default function CommunityPage() {
       }
     });
     const unsub2 = socket.on('direct_message', (data) => {
-      if (selectedBuddyRef.current && data.sender_id === selectedBuddyRef.current.user_id) {
+      if (selectedFriendRef.current && data.sender_id === selectedFriendRef.current.user_id) {
         setDmMessages(prev => [...prev, data]);
       }
     });
@@ -106,15 +106,15 @@ export default function CommunityPage() {
       setChannels(data);
     } catch (e) { console.error(e); }
   };
-  const fetchBuddies = async () => {
+  const fetchFriends = async () => {
     try {
-      const { data } = await axios.get(`${API}/api/buddies/my-buddies?user_id=${user.id}`);
-      setBuddies(data);
+      const { data } = await axios.get(`${API}/api/friends/my-friends?user_id=${user.id}`);
+      setFriends(data);
     } catch (e) { console.error(e); }
   };
   const fetchRequests = async () => {
     try {
-      const { data } = await axios.get(`${API}/api/buddies/requests?user_id=${user.id}`);
+      const { data } = await axios.get(`${API}/api/friends/requests?user_id=${user.id}`);
       setRequests(data);
     } catch (e) { console.error(e); }
   };
@@ -128,8 +128,8 @@ export default function CommunityPage() {
   const openChannel = async (ch) => {
     setSelectedChannel(ch);
     selectedChannelRef.current = ch;
-    setSelectedBuddy(null);
-    selectedBuddyRef.current = null;
+    setSelectedFriend(null);
+    selectedFriendRef.current = null;
     setShowMembersPanel(false);
     socket.joinRoom(`channel_${ch.id}`);
     try {
@@ -173,9 +173,9 @@ export default function CommunityPage() {
         const messageText = msgInput.trim() ? `${data.file_url}|||${msgInput.trim()}` : data.file_url;
         setChannelMessages(prev => [...prev, { id: data.id, user_id: user.id, username: user.username || user.full_name, message: messageText, message_type: data.message_type, created_at: new Date().toISOString() }]);
         socket.send({ type: 'channel_message', channel_id: selectedChannel.id, message: messageText, message_type: data.message_type, id: data.id, username: user.username || user.full_name });
-      } else if (selectedBuddy) {
-        const { data } = await axios.post(`${API}/api/dm/${selectedBuddy.user_id}/upload`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
-        socket.sendDirectMessage(selectedBuddy.user_id, data.file_url);
+      } else if (selectedFriend) {
+        const { data } = await axios.post(`${API}/api/dm/${selectedFriend.user_id}/upload`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+        socket.sendDirectMessage(selectedFriend.user_id, data.file_url);
         setDmMessages(prev => [...prev, { id: data.id, sender_id: user.id, sender_name: user.username, message: data.file_url, message_type: data.message_type, created_at: new Date().toISOString() }]);
       }
       setChatFile(null);
@@ -212,9 +212,9 @@ export default function CommunityPage() {
         const messageText = caption ? `${data.file_url}|||${caption}` : data.file_url;
         setChannelMessages(prev => [...prev, { id: data.id, user_id: user.id, username: user.username || user.full_name, message: messageText, message_type: data.message_type, created_at: new Date().toISOString() }]);
         socket.send({ type: 'channel_message', channel_id: selectedChannel.id, message: messageText, message_type: data.message_type, id: data.id, username: user.username || user.full_name });
-      } else if (selectedBuddy) {
-        const { data } = await axios.post(`${API}/api/dm/${selectedBuddy.user_id}/upload`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
-        socket.sendDirectMessage(selectedBuddy.user_id, data.file_url);
+      } else if (selectedFriend) {
+        const { data } = await axios.post(`${API}/api/dm/${selectedFriend.user_id}/upload`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+        socket.sendDirectMessage(selectedFriend.user_id, data.file_url);
         setDmMessages(prev => [...prev, { id: data.id, sender_id: user.id, sender_name: user.username, message: data.file_url, message_type: data.message_type, created_at: new Date().toISOString() }]);
       }
     } catch (e) {
@@ -222,23 +222,23 @@ export default function CommunityPage() {
     }
   };
 
-  const openDM = async (buddy) => {
-    setSelectedBuddy(buddy);
-    selectedBuddyRef.current = buddy;
+  const openDM = async (friend) => {
+    setSelectedFriend(friend);
+    selectedFriendRef.current = friend;
     setSelectedChannel(null);
     selectedChannelRef.current = null;
     try {
-      const { data } = await axios.get(`${API}/api/dm/${buddy.user_id}/messages?user_id=${user.id}`);
+      const { data } = await axios.get(`${API}/api/dm/${friend.user_id}/messages?user_id=${user.id}`);
       setDmMessages(data);
     } catch (e) { console.error(e); }
   };
   const sendDM = async () => {
-    if (!msgInput.trim() || !selectedBuddy) return;
+    if (!msgInput.trim() || !selectedFriend) return;
     const currentInput = msgInput.trim();
     setMsgInput('');
     try {
-      await axios.post(`${API}/api/dm/${selectedBuddy.user_id}/send?user_id=${user.id}&message=${encodeURIComponent(currentInput)}`);
-      socket.sendDirectMessage(selectedBuddy.user_id, currentInput);
+      await axios.post(`${API}/api/dm/${selectedFriend.user_id}/send?user_id=${user.id}&message=${encodeURIComponent(currentInput)}`);
+      socket.sendDirectMessage(selectedFriend.user_id, currentInput);
       setDmMessages(prev => [...prev, { id: Date.now(), sender_id: user.id, sender_name: user.username, message: currentInput, created_at: new Date().toISOString() }]);
     } catch (e) {
       setMsgInput(currentInput);
@@ -344,9 +344,9 @@ export default function CommunityPage() {
     }
   };
 
-  const sendBuddyRequestFromGroup = async (targetId) => {
+  const sendFriendRequestFromGroup = async (targetId) => {
     try {
-      await axios.post(`${API}/api/buddies/requests`, { receiver_id: targetId, message: "Chào bạn, mình muốn kết bạn từ nhóm!" }, { params: { user_id: user.id } });
+      await axios.post(`${API}/api/friends/requests`, { receiver_id: targetId, message: "Chào bạn, mình muốn kết bạn từ nhóm!" }, { params: { user_id: user.id } });
       setFeedbackModal({ type: 'success', message: "Đã gửi lời mời kết bạn!" });
     } catch (e) {
       setFeedbackModal({ type: 'error', message: e.response?.data?.detail || "Không thể gửi lời mời hoặc đã gửi rồi." });
@@ -354,35 +354,35 @@ export default function CommunityPage() {
   };
 
   const acceptRequest = async (reqId) => {
-    await axios.put(`${API}/api/buddies/request/${reqId}/accept`);
-    fetchRequests(); fetchBuddies();
+    await axios.put(`${API}/api/friends/request/${reqId}/accept`);
+    fetchRequests(); fetchFriends();
   };
   const rejectRequest = async (reqId) => {
-    await axios.put(`${API}/api/buddies/request/${reqId}/reject`);
+    await axios.put(`${API}/api/friends/request/${reqId}/reject`);
     fetchRequests();
   };
 
-  const removeBuddy = async (buddyId, e) => {
+  const removeFriend = async (friendId, e) => {
     e.stopPropagation();
-    setShowRemoveBuddyConfirm(buddyId);
+    setShowRemoveFriendConfirm(friendId);
   };
 
-  const executeRemoveBuddy = async () => {
-    const buddyId = showRemoveBuddyConfirm;
-    setShowRemoveBuddyConfirm(null);
+  const executeRemoveFriend = async () => {
+    const friendId = showRemoveFriendConfirm;
+    setShowRemoveFriendConfirm(null);
     try {
-      await axios.delete(`${API}/api/buddies/${buddyId}?user_id=${user.id}`);
-      setBuddies(buddies.filter(b => b.user_id !== buddyId));
-      if (selectedBuddy?.user_id === buddyId) {
-        setSelectedBuddy(null);
-        selectedBuddyRef.current = null;
+      await axios.delete(`${API}/api/friends/${friendId}?user_id=${user.id}`);
+      setFriends(friends.filter(b => b.user_id !== friendId));
+      if (selectedFriend?.user_id === friendId) {
+        setSelectedFriend(null);
+        selectedFriendRef.current = null;
       }
     } catch (e) {
       console.error(e);
     }
   };
 
-  const chatActive = selectedChannel || selectedBuddy;
+  const chatActive = selectedChannel || selectedFriend;
 
   return (
     <div className="flex h-[calc(100vh-64px)] -mt-8 -mx-8 bg-slate-50 dark:bg-slate-950 relative">
@@ -455,9 +455,9 @@ export default function CommunityPage() {
             </button>
           ))}
 
-          {activeTab === 'friends' && buddies.map(b => (
+          {activeTab === 'friends' && friends.map(b => (
             <div key={b.user_id} className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors border-b border-slate-50 dark:border-slate-800 group cursor-pointer
-              ${selectedBuddy?.user_id === b.user_id ? 'bg-primary-50 dark:bg-primary-900/20' : ''}`}
+              ${selectedFriend?.user_id === b.user_id ? 'bg-primary-50 dark:bg-primary-900/20' : ''}`}
               onClick={() => { openDM(b); setShowLeftPanel(false); }}>
               <div className="relative">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-bold">
@@ -470,7 +470,7 @@ export default function CommunityPage() {
                 <p className="text-xs text-slate-500 dark:text-slate-400">{b.school_name || 'EduFlow'}</p>
               </div>
               <button
-                onClick={(e) => removeBuddy(b.user_id, e)}
+                onClick={(e) => removeFriend(b.user_id, e)}
                 className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100"
                 title="Xóa bạn"
               >
@@ -488,11 +488,11 @@ export default function CommunityPage() {
             {/* Header */}
             <div className="px-6 max-md:px-4 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <button onClick={() => { setSelectedChannel(null); setSelectedBuddy(null); setShowLeftPanel(true); }} className="md:hidden p-2 -ml-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-600 dark:text-slate-300">
+                <button onClick={() => { setSelectedChannel(null); setSelectedFriend(null); setShowLeftPanel(true); }} className="md:hidden p-2 -ml-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-600 dark:text-slate-300">
                   <ArrowLeft size={20} />
                 </button>
                 {selectedChannel && <><div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-bold flex-shrink-0">{selectedChannel.subject_name?.[0]?.toUpperCase()}</div><div><h2 className="font-bold text-slate-800 dark:text-white">{selectedChannel.subject_name}</h2><p className="text-xs text-slate-500">{selectedChannel.member_count} thành viên</p></div></>}
-                {selectedBuddy && <><div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-bold flex-shrink-0">{(selectedBuddy.full_name || selectedBuddy.username)?.[0]?.toUpperCase()}</div><div><h2 className="font-bold text-slate-800 dark:text-white">{selectedBuddy.full_name || selectedBuddy.username}</h2><p className="text-xs text-emerald-500 font-medium">Đang hoạt động</p></div></>}
+                {selectedFriend && <><div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-bold flex-shrink-0">{(selectedFriend.full_name || selectedFriend.username)?.[0]?.toUpperCase()}</div><div><h2 className="font-bold text-slate-800 dark:text-white">{selectedFriend.full_name || selectedFriend.username}</h2><p className="text-xs text-emerald-500 font-medium">Đang hoạt động</p></div></>}
               </div>
 
               <div className="flex items-center gap-2">
@@ -619,7 +619,7 @@ export default function CommunityPage() {
                   <div className="flex-1 overflow-y-auto p-3 space-y-2">
                     {channelMembers.map(m => {
                       const isMe = String(m.user_id) === String(user.id);
-                      const isBuddy = buddies.some(b => String(b.user_id) === String(m.user_id));
+                      const isFriend = friends.some(b => String(b.user_id) === String(m.user_id));
                       const isCreator = String(selectedChannel.creator_id) === String(user.id);
 
                       return (
@@ -632,9 +632,9 @@ export default function CommunityPage() {
                               {m.full_name || m.username} {isMe && <span className="text-xs text-slate-400 font-normal ml-1">(Tôi)</span>}
                             </p>
                           </div>
-                          {!isMe && !isBuddy && (
+                          {!isMe && !isFriend && (
                             <button
-                              onClick={() => sendBuddyRequestFromGroup(m.user_id)}
+                              onClick={() => sendFriendRequestFromGroup(m.user_id)}
                               className="p-1.5 opacity-0 group-hover:opacity-100 bg-primary-50 dark:bg-primary-900/40 text-primary-600 dark:text-primary-400 hover:bg-primary-500 hover:text-white dark:hover:bg-primary-500 rounded transition-all"
                               title="Thêm bạn"
                             >
@@ -751,15 +751,15 @@ export default function CommunityPage() {
       )}
 
       {/* Modal xác nhận xóa bạn */}
-      {showRemoveBuddyConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowRemoveBuddyConfirm(null)}>
+      {showRemoveFriendConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowRemoveFriendConfirm(null)}>
           <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
             className="bg-white dark:bg-slate-800 dark:border-slate-700 dark:text-white rounded-3xl p-8 w-full max-w-sm shadow-2xl" onClick={e => e.stopPropagation()}>
             <h2 className="text-xl font-black text-slate-900 dark:text-white mb-4">Xóa bạn bè</h2>
             <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">Bạn có muốn xóa khỏi danh sách bạn?</p>
             <div className="flex gap-3 mt-4">
-              <button onClick={() => setShowRemoveBuddyConfirm(null)} className="flex-1 py-2.5 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-xl font-bold text-sm hover:bg-slate-50 dark:hover:bg-slate-700">Hủy</button>
-              <button onClick={executeRemoveBuddy}
+              <button onClick={() => setShowRemoveFriendConfirm(null)} className="flex-1 py-2.5 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-xl font-bold text-sm hover:bg-slate-50 dark:hover:bg-slate-700">Hủy</button>
+              <button onClick={executeRemoveFriend}
                 className="flex-1 py-2.5 bg-red-500 text-white rounded-xl font-bold text-sm hover:bg-red-600 transition-colors">Xóa</button>
             </div>
           </motion.div>

@@ -1,0 +1,24 @@
+@startuml
+actor "User A" as UA
+participant "Frontend A" as FA
+participant "Backend" as BE
+database "PostgreSQL" as DB
+participant "Frontend B" as FB
+actor "User B" as UB
+
+autonumber
+
+UA -> FA: Send Text / Attach Annotated Image
+FA -> BE: Send Message Payload
+BE -> DB: Save Message
+DB --> BE: OK
+BE --> FA: Message Delivered
+BE -> FB: Forward Message Data
+FB --> UB: Render Message / Image
+
+UA -> FA: Turn On Camera
+FA -> BE: Send Video Stream
+BE -> FB: Forward Video Stream
+FB --> UB: Show User A Video
+
+@enduml
