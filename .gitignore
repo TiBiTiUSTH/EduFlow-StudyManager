@@ -48,3 +48,11 @@ backend/alembic/versions/*.pyc
 !frontend/public/**
 cloud_deployment_guide.md
 usth_logo*
+
+# Scratch & diagrams
+scratch/
+*.puml
+*.jar
+*.jpg
+sequence diagram/
+pdf_output.txt

@@ -2,7 +2,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from .api import auth, subjects, tasks, schedules, notifications, users, pomodoros, ai, chat, room, admin
 from .api.websocket import manager
-from .api import community, buddies, dm, resources, video_signaling, matching
+from .api import community, friends, dm, resources, video_signaling, matching
 import json
 from .database import engine, Base
 from .models import models  # Ensure models are loaded before creation
@@ -59,7 +59,7 @@ app.include_router(ai.router)
 app.include_router(chat.router)
 app.include_router(room.router)
 app.include_router(community.router)
-app.include_router(buddies.router)
+app.include_router(friends.router)
 app.include_router(dm.router)
 app.include_router(resources.router)
 app.include_router(video_signaling.router)
