@@ -504,14 +504,16 @@ export default function StudyRoomDetailPage() {
               const status = remoteMediaStatus[m.user_id];
               return (
                 <div key={m.user_id} className={`relative bg-slate-800 rounded-xl md:rounded-2xl overflow-hidden shadow-lg ${getVideoAspect()}`}>
-                  {status?.videoOff ? (
+                  {/* Always render video element so audio keeps playing */}
+                  <div className={status?.videoOff ? 'absolute inset-0 opacity-0 pointer-events-none' : 'w-full h-full'}>
+                    <RemoteVideo stream={remoteStreams[m.user_id]} name={m.full_name || m.username} />
+                  </div>
+                  {status?.videoOff && (
                     <div className="absolute inset-0 flex items-center justify-center bg-slate-800">
                       <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-slate-700 flex items-center justify-center text-2xl md:text-3xl font-bold text-white shadow-inner">
                         {(m.full_name || m.username)?.[0]}
                       </div>
                     </div>
-                  ) : (
-                    <RemoteVideo stream={remoteStreams[m.user_id]} name={m.full_name || m.username} />
                   )}
                   <div className="absolute bottom-2 md:bottom-4 left-2 md:left-4 bg-black/60 backdrop-blur-md px-2 md:px-3 py-1 md:py-1.5 rounded-lg flex items-center gap-1.5 md:gap-2">
                     {status?.muted && <MicOff size={12} className="text-red-500" />}
