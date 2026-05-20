@@ -49,6 +49,12 @@ export default function StudyRoomDetailPage() {
   const localVideoRef = useRef(null);
   const localStreamRef = useRef(null);
   const streamReadyRef = useRef(false);
+  const offerQueue = useRef([]);
+  const isMutedRef = useRef(isMuted);
+  const isVideoOffRef = useRef(isVideoOff);
+
+  useEffect(() => { isMutedRef.current = isMuted; }, [isMuted]);
+  useEffect(() => { isVideoOffRef.current = isVideoOff; }, [isVideoOff]);
 
   const peers = useRef({});
   const iceQueue = useRef({});
@@ -174,9 +180,19 @@ export default function StudyRoomDetailPage() {
 
       socket.joinRoom(roomId);
       fetchRoom();
-      fetchMembers();
+      
+      try {
+        const { data } = await axios.get(`${API}/api/room/${roomId}/members`);
+        setMembers(data);
+        data.forEach(m => {
+          if (m.user_id !== user.id && user.id > m.user_id) {
+            if (!peers.current[m.user_id]) {
+              createPeer(m.user_id, true);
+            }
+          }
+        });
+      } catch (err) { console.error(err); }
 
-      // Tạo peer cho những user đã join trước khi stream sẵn sàng
       if (pendingPeers.current.length > 0) {
         for (const userId of pendingPeers.current) {
           if (!peers.current[userId]) {
@@ -185,6 +201,13 @@ export default function StudyRoomDetailPage() {
         }
         pendingPeers.current = [];
       }
+
+      if (offerQueue.current.length > 0) {
+        for (const offerData of offerQueue.current) {
+          processOffer(offerData);
+        }
+        offerQueue.current = [];
+      }
     };
 
     initRoom();
@@ -192,14 +215,16 @@ export default function StudyRoomDetailPage() {
     const unsubJoined = socket.on('user_joined', (data) => {
       fetchMembers();
       if (data.user_id !== user.id) {
-        if (streamReadyRef.current) {
-          // Stream sẵn sàng → tạo peer ngay
-          if (!peers.current[data.user_id]) {
-            setTimeout(() => createPeer(data.user_id, true), 300);
+        socket.send({ type: 'media_status', room_id: roomId, muted: isMutedRef.current, videoOff: isVideoOffRef.current });
+        
+        if (user.id > data.user_id) {
+          if (streamReadyRef.current) {
+            if (!peers.current[data.user_id]) {
+              setTimeout(() => createPeer(data.user_id, true), 300);
+            }
+          } else {
+            pendingPeers.current.push(data.user_id);
           }
-        } else {
-          // Stream chưa sẵn sàng → đợi
-          pendingPeers.current.push(data.user_id);
         }
       }
     });
@@ -232,8 +257,7 @@ export default function StudyRoomDetailPage() {
       }
     });
 
-    const unsubOffer = socket.on('webrtc_offer', async (data) => {
-      if (data.sender_id === user.id) return;
+    const processOffer = async (data) => {
       const peer = createPeer(data.sender_id, false);
       try {
         await peer.setRemoteDescription(new RTCSessionDescription(data.offer));
@@ -242,6 +266,15 @@ export default function StudyRoomDetailPage() {
         await peer.setLocalDescription(answer);
         socket.send({ type: 'webrtc_answer', receiver_id: data.sender_id, answer: peer.localDescription });
       } catch (err) { console.error("Offer handle error", err); }
+    };
+
+    const unsubOffer = socket.on('webrtc_offer', async (data) => {
+      if (data.sender_id === user.id) return;
+      if (!streamReadyRef.current) {
+        offerQueue.current.push(data);
+        return;
+      }
+      processOffer(data);
     });
 
     const unsubAnswer = socket.on('webrtc_answer', async (data) => {
@@ -300,11 +333,12 @@ export default function StudyRoomDetailPage() {
 
   const toggleMute = useCallback(() => {
     const stream = localStreamRef.current;
-    if (!stream) return;
-    const audioTracks = stream.getAudioTracks();
-    if (audioTracks.length === 0) return;
-    const newEnabled = !audioTracks[0].enabled;
-    audioTracks.forEach(track => { track.enabled = newEnabled; });
+    if (!stream || stream.getAudioTracks().length === 0) {
+      alert("Không tìm thấy micro hoặc trình duyệt chưa được cấp quyền!");
+      return;
+    }
+    const newEnabled = !stream.getAudioTracks()[0].enabled;
+    stream.getAudioTracks().forEach(track => { track.enabled = newEnabled; });
     const nowMuted = !newEnabled;
     setIsMuted(nowMuted);
     socket.send({ type: 'media_status', room_id: roomId, muted: nowMuted, videoOff: isVideoOff });
@@ -313,11 +347,12 @@ export default function StudyRoomDetailPage() {
   const toggleVideo = useCallback(() => {
     if (isScreenSharing) return;
     const stream = localStreamRef.current;
-    if (!stream) return;
-    const videoTracks = stream.getVideoTracks();
-    if (videoTracks.length === 0) return;
-    const newEnabled = !videoTracks[0].enabled;
-    videoTracks.forEach(track => { track.enabled = newEnabled; });
+    if (!stream || stream.getVideoTracks().length === 0) {
+      alert("Không tìm thấy camera hoặc trình duyệt chưa được cấp quyền!");
+      return;
+    }
+    const newEnabled = !stream.getVideoTracks()[0].enabled;
+    stream.getVideoTracks().forEach(track => { track.enabled = newEnabled; });
     const nowVideoOff = !newEnabled;
     setIsVideoOff(nowVideoOff);
     socket.send({ type: 'media_status', room_id: roomId, muted: isMuted, videoOff: nowVideoOff });
