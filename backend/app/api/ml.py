@@ -1,8 +1,13 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-import joblib
-import pandas as pd
 import os
+
+try:
+    import joblib
+    import pandas as pd
+except ImportError:
+    joblib = None
+    pd = None
 
 router = APIRouter(prefix="/stms/ml", tags=["ml"])
 
@@ -11,11 +16,11 @@ MODEL_PATH = os.path.join(os.path.dirname(__file__), '../../ml_engine/task_model
 model = None
 
 try:
-    if os.path.exists(MODEL_PATH):
+    if joblib and os.path.exists(MODEL_PATH):
         model = joblib.load(MODEL_PATH)
         print(f"[ML] Đã load thành công mô hình EduFlow Core ML: {MODEL_PATH}")
     else:
-        print(f"[ML-WARNING] Không tìm thấy model tại {MODEL_PATH}. Vui lòng chạy ml_engine/train_task_model.py")
+        print(f"[ML-WARNING] Không tìm thấy model tại {MODEL_PATH}. Sử dụng fallback.")
 except Exception as e:
     print(f"[ML-ERROR] Lỗi khi load model: {e}")
 
