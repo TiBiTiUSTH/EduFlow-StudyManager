@@ -1,6 +1,6 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from .api import auth, subjects, tasks, schedules, notifications, users, pomodoros, ai, chat, room, admin, ml
+from .api import auth, subjects, tasks, schedules, notifications, users, pomodoros, ai, chat, room, admin
 from .api.websocket import manager
 from .api import community, friends, dm, resources, video_signaling, matching
 import json
@@ -65,7 +65,6 @@ app.include_router(resources.router)
 app.include_router(video_signaling.router)
 app.include_router(matching.router)
 app.include_router(admin.router)
-app.include_router(ml.router)
 
 import os
 from fastapi.staticfiles import StaticFiles

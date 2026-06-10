@@ -70,9 +70,6 @@ const TaskPage = () => {
     const practiceChatEndRef = useRef(null);
     const toast = useToast();
 
-    // ML Predictions
-    const [predictedTime, setPredictedTime] = useState(null);
-    const [isPredicting, setIsPredicting] = useState(false);
 
     const [newTask, setNewTask] = useState({
         title: '', description: '', priority: 'medium', due_date: '', subject_id: null, group_id: null
@@ -158,7 +155,7 @@ const TaskPage = () => {
             setNewTask({ title: '', description: '', priority: 'medium', due_date: '', subject_id: null, group_id: null });
             setGeneratedSubtasks([]);
             setBreakdownFile(null);
-            setPredictedTime(null);
+
             fetchTasks();
             if (isAILoadingRef.current) {
                 toast('Đã tạo nhiệm vụ. Đang phân tích...', 'success');
@@ -171,27 +168,7 @@ const TaskPage = () => {
         }
     };
 
-    const handlePredictTime = async () => {
-        if (!newTask.title.trim()) {
-            toast('Vui lòng nhập tên nhiệm vụ', 'error');
-            return;
-        }
-        setIsPredicting(true);
-        try {
-            const res = await axios.post(`${API}/stms/ai/predict-task-time`, {
-                subject_id: newTask.subject_id || 0,
-                priority_level: newTask.priority === 'high' ? 3 : newTask.priority === 'medium' ? 2 : 1,
-                time_of_day: new Date().getHours() >= 18 ? 2 : new Date().getHours() >= 12 ? 1 : 0,
-                user_historical_avg: 45
-            }, { headers });
-            setPredictedTime(res.data.message);
-        } catch (err) {
-            console.error("Predict error", err);
-            toast('Lỗi', 'error');
-        } finally {
-            setIsPredicting(false);
-        }
-    };
+
 
     const handleAIBreakdown = async () => {
         if (!newTask.title.trim()) {
@@ -781,18 +758,11 @@ const TaskPage = () => {
                                 <div>
                                     <div className="flex items-center justify-between mb-1">
                                         <label className="block text-xs font-bold text-slate-700">Tên nhiệm vụ</label>
-                                        <div className="flex gap-2">
-                                            <button type="button" onClick={handlePredictTime}
-                                                disabled={isPredicting}
-                                                className="text-[11px] bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-2.5 py-1.5 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all shadow hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed">
-                                                {isPredicting ? 'Đang tính...' : 'Phân tích thời gian'}
-                                            </button>
-                                            <button type="button" onClick={handleAIBreakdown}
-                                                disabled={isAILoading}
-                                                className="text-[11px] bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-2.5 py-1.5 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all shadow hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed w-28">
-                                                {isAILoading ? 'Đang xử lý...' : 'Chia nhiệm vụ'}
-                                            </button>
-                                        </div>
+                                        <button type="button" onClick={handleAIBreakdown}
+                                            disabled={isAILoading}
+                                            className="text-[11px] bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-2.5 py-1.5 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all shadow hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed w-28">
+                                            {isAILoading ? 'Đang xử lý...' : 'Chia nhiệm vụ'}
+                                        </button>
                                     </div>
                                     <input type="text" required value={newTask.title}
                                         onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
@@ -812,12 +782,6 @@ const TaskPage = () => {
                                     </div>
                                 </div>
 
-                                {predictedTime && (
-                                    <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="bg-emerald-50 text-emerald-700 text-xs font-bold p-3 rounded-xl border border-emerald-100 flex items-center gap-2">
-                                        <Sparkles size={16} className="text-emerald-500 shrink-0" />
-                                        <span>{predictedTime}</span>
-                                    </motion.div>
-                                )}
 
                                 {generatedSubtasks.length > 0 && (
                                     <div className="bg-indigo-50/50 dark:bg-indigo-900/20 p-3 rounded-[16px] border border-indigo-100 dark:border-indigo-800/50">
@@ -868,7 +832,7 @@ const TaskPage = () => {
                                     </div>
                                 </div>
                                 <div className="pt-3 flex gap-3">
-                                    <button type="button" onClick={() => { setIsModalOpen(false); setGeneratedSubtasks([]); setBreakdownFile(null); setPredictedTime(null); }}
+                                    <button type="button" onClick={() => { setIsModalOpen(false); setGeneratedSubtasks([]); setBreakdownFile(null); }}
                                         className="flex-1 py-2.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-all text-sm">Hủy</button>
                                     <button type="submit"
                                         className="flex-1 py-2.5 bg-primary-600 text-white font-bold rounded-xl shadow-lg shadow-primary-200 hover:bg-primary-700 transition-all text-sm">
