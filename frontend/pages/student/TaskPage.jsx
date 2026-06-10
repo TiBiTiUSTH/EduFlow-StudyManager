@@ -178,7 +178,7 @@ const TaskPage = () => {
         }
         setIsPredicting(true);
         try {
-            const res = await axios.post(`${API}/stms/ml/predict-task-time`, {
+            const res = await axios.post(`${API}/stms/ai/predict-task-time`, {
                 subject_id: newTask.subject_id || 0,
                 priority_level: newTask.priority === 'high' ? 3 : newTask.priority === 'medium' ? 2 : 1,
                 time_of_day: new Date().getHours() >= 18 ? 2 : new Date().getHours() >= 12 ? 1 : 0,
