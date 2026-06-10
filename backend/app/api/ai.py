@@ -33,9 +33,8 @@ ACTIVE_KEYS_LIST = list(API_KEYS)
 
 AI_URL = "https://openrouter.ai/api/v1/chat/completions"
 
-# Các model miễn phí (cập nhật 06/2026)
+# Các model miễn phí (cập nhật 06/2026) - sắp xếp theo tốc độ/độ ổn định
 MODELS = [
-    "moonshotai/kimi-k2.6:free",
     "openai/gpt-oss-20b:free",
     "qwen/qwen3-coder:free",
     "meta-llama/llama-3.3-70b-instruct:free",
@@ -92,7 +91,7 @@ async def _try_model(model_id: str, prompt, headers: dict, max_tokens: int) -> t
             "messages": [{"role": "user", "content": messages_content}],
             "max_tokens": max_tokens,
         }
-        async with httpx.AsyncClient(timeout=20.0) as client:
+        async with httpx.AsyncClient(timeout=15.0) as client:
             t0 = _time.time()
             response = await client.post(AI_URL, json=payload, headers=headers)
             elapsed = round(_time.time() - t0, 1)
