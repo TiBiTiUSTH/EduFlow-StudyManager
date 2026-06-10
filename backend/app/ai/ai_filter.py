@@ -11,33 +11,132 @@ _last_model_mtime = 0
 
 # Danh sách từ cấm
 TOXIC_KEYWORDS = [
+    # === Chửi mẹ/cha/gia đình ===
     "đm", "đcm", "dcm", "dkm", "đkm", "dcmm", "đcmm", "đmm", "dmm",
-    "địt", "dit", "đụ", "đjt", "djt",
+    "đcmnr", "đkmm", "dkmm", "đcmn", "dcmn", "đmn", "dmn",
+    "đcml", "dcml", "đcmc", "dcmc", "đcmcm", "dcmcm",
+    "đmml", "dmml", "đmmm", "dmmm", "đmmn", "dmmn",
+    "đcmmmm", "dcmmmm", "đkmn", "dkmn",
+    "dm mày", "đm mày", "dcm mày", "đcm mày", "dkm mày", "đkm mày",
+
+    # === Địt / Đụ ===
+    "địt", "dit", "đụ", "đjt", "djt", "địt", "dịt",
     "địt mẹ", "dit me", "đụ mẹ", "đụ má", "địt cụ", "đĩ mẹ",
-    "con mẹ mày", "mẹ cha mày", "mả cha mày",
-    "lồn", "lol", "loz", "lìn",
-    "cặc", "cặk", "cac", "buồi", "buoi",
-    "vl", "vll", "vcl", "vcll", "vkl", "vklm", "vãi lồn", "vãi lol", "vãi lìn", "vãi loz",
+    "địt con mẹ", "dit con me", "đụ mẹ mày", "đụ má mày",
+    "địt bà", "dit ba", "đụ bà", "đjt mẹ", "djt me",
+    "dit cha", "đụ cha", "địt cha", "địt bố",
+
+    # === VCL / VCD / VKL và biến thể ===
+    "vcd", "vcđ", "vcb", "vcc", "vcdd", "vcddd",
+    "vcđd", "vcđđ", "vcbd", "vcbb",
+    "vkl", "vklm", "vkll", "vkllm",
+    "vcl", "vcll", "vclm", "vcllm", "vclll",
+    "vl", "vll", "vlm", "vllm", "vlll",
+    "vãi lồn", "vãi lol", "vãi lìn", "vãi loz",
+    "vãi cả lồn", "vãi cả đời", "vãi cả buồi",
+    "vãi", "vãi chưởng", "vãi đạn", "vãi l",
+    "vai lon", "vai lol", "vai lin",
+    "vai ca lon", "vai ca doi", "vai ca buoi",
+
+    # === CC / CL ===
     "cc", "cl", "clm", "clmm", "clgt",
-    "đĩ", "phò", "điếm", "đĩ thõa", "phò phạch", "đĩ chó", "đĩ điếm", "con đĩ", "con phò",
-    "chó đẻ", "súc vật", "súc sinh", "súc sanh",
-    "ngu lồn", "hãm lồn", "hãm lol", "mặt lồn", "mặt cặc", "nứng lồn",
-    "xàm lồn", "xạo lồn", "xàm lol",
+    "ccc", "cccm", "ccm", "ccmm",
+    "cll", "cllm", "clll",
+    "con cặc", "con lồn",
+
+    # === Lồn / Cặc / Buồi ===
+    "lồn", "lol", "loz", "lìn", "lờn", "lổn",
+    "cặc", "cặk", "cac", "cak", "cặcc",
+    "buồi", "buoi", "bùi", "buồii",
+    "đầu buồi", "đầu b", "đầu cặc", "đb", "db",
+    "cái lồn", "cái cặc", "cái buồi",
+    "mặt lồn", "mặt cặc", "nứng lồn",
+
+    # === Đĩ / Phò ===
+    "đĩ", "phò", "điếm", "đĩ thõa", "phò phạch",
+    "đĩ chó", "đĩ điếm", "con đĩ", "con phò",
+    "cave", "ca ve",
+
+    # === Ngu / Chửi trí tuệ ===
+    "ngu lồn", "hãm lồn", "hãm lol", "ngu vl", "ngu vcl", "ngu vkl",
+    "ngu cc", "ngu cl", "ngu đéo chịu",
+    "ngu như bò", "ngu như chó", "ngu như lợn",
+    "ngu si", "ngu học", "ngu thế",
+    "ngu lol", "ngu loz", "ngu vcd",
     "óc chó", "óc cặc", "óc bã đậu", "ngáo chó",
+    "não cá vàng", "não tôm",
+
+    # === Xàm / Xạo ===
+    "xàm lồn", "xạo lồn", "xàm lol",
+    "xàm cc", "xàm cl", "xạo cc",
+    "xàm vl", "xàm vcl",
+
+    # === Súc vật / Chó ===
+    "chó đẻ", "súc vật", "súc sinh", "súc sanh",
     "thằng chó", "con chó", "đồ chó",
-    "cút mẹ", "biến đi", "câm mồm", "im mồm",
-    "ăn cứt", "ăn cc", "ăn l",
-    "ngu như bò", "ngu như chó", "ngu si", "ngu học", "ngu thế", "ngu vcl", "ngu vkl",
+    "đồ con chó", "đồ súc sinh", "đồ súc vật",
+    "mặt chó", "mặt lợn",
+    "chó chết", "chó ngáo",
+
+    # === Con mẹ / Mả ===
+    "con mẹ mày", "mẹ cha mày", "mả cha mày",
+    "mả mẹ", "mả cha", "mả tổ",
+    "tổ cha", "tổ sư",
+
+    # === Cút / Im ===
+    "cút mẹ", "câm mồm", "im mồm",
+    "cút đi", "cút xéo", "biến đi", "biến xéo",
+    "câm mõm", "im mõm", "bịt mồm",
+    "câm đi", "im đi",
+
+    # === Ăn ===
+    "ăn cứt", "ăn cc", "ăn l", "ăn lol", "ăn lồn",
+    "ăn đầu buồi", "ăn đb",
+
+    # === Mất dạy / Vô học ===
     "mất dạy", "vô học", "bố láo",
+    "mất nết", "hỗn", "hỗn láo",
+    "vô giáo dục", "mất giáo dục",
+
+    # === Bố sư / Tiên sư ===
     "bố sư", "tiên sư", "tổ sư",
+    "tiên sư bố", "tiên sư cha",
+
+    # === Chết ===
     "chết cụ", "chết mẹ", "chết cha",
-    "nhảy lầu", "đi chết",
-    "cái đéo", "đéo", "đếch",
-    "thằng điên", "thằng ranh",
+    "chết đi", "chết cmn",
+    "nhảy lầu", "đi chết", "tự tử đi",
+
+    # === Đéo / Đếch ===
+    "cái đéo", "đéo", "đếch", "đéo care",
+    "đéo hiểu", "đéo biết",
+    "đéo thèm",
+
+    # === Thằng / Con (xúc phạm) ===
+    "thằng điên", "thằng ranh", "thằng khốn",
+    "thằng ngu", "thằng đần", "thằng ngốc",
+    "thằng hâm", "thằng dở",
+    "con điên", "con khốn", "con ngu",
+
+    # === QQ / DB ===
     "cái qq", "cái đb", "đầu buồi", "đầu b",
+
+    # === English ===
     "wtf", "stfu", "fuck", "fck", "fuk", "shit", "bitch", "dick", "ass",
-    "d.m", "d m", "đ.m", "đ m", "d.c.m", "v.l", "v l", "c.c", "c c",
+    "motherfucker", "mf", "fking", "fk", "fvck",
+
+    # === Lách luật bằng dấu chấm/cách ===
+    "d.m", "d m", "đ.m", "đ m", "d.c.m", "d c m", "đ.c.m", "đ c m",
+    "v.l", "v l", "c.c", "c c", "c.l", "c l",
+    "v.c.l", "v c l", "v.c.d", "v c d",
+    "v.k.l", "v k l",
+
+    # === Lách luật bằng số/ký tự ===
     "đ!t", "d!t", "đ1t", "d1t", "l0n", "l0l", "c4c", "bu0i",
+    "đ!t m3", "d!t m3", "l0z",
+    "d!t me", "d!t m3 m4y",
+
+    # === Teencode / Viết tắt bậy ===
     "deo", "dech", "deo biet", "deo hieu",
     "dit", "dit me", "dit cu",
     "lon", "lon nay",
@@ -45,9 +144,41 @@ TOXIC_KEYWORDS = [
     "mat day", "vo hoc", "suc vat",
     "bo su", "tien su",
     "chet cu", "chet me", "chet cha",
+
+    # === Viết tắt khác phổ biến ===
+    "cmm", "cmnr", "cmnl", "cmn",
+    "đkm", "đkmm", "đkmmm",
+    "đml", "dml", "đmlm", "dmlm",
+    "mđ", "md", "mlm",
+    "đhs", "dhs",
+    "clgt", "cmht",
+    "blồn", "bcặc",
+    "vcđt", "vcdt", "vkdt",
+    "ktmd", "kmdd",
+    "bmv", "bmm",
+    "đmcs", "dmcs",
+    "đmcm", "dmcm",
+
+    # === Cụm từ dài bậy ===
+    "đồ khốn nạn", "đồ mất dạy", "đồ vô học",
+    "đồ điên", "đồ hâm", "đồ ngu",
+    "đồ rác rưởi", "đồ phế vật",
+    "mẹ mày", "cha mày", "bà mày",
+    "bố mày", "tổ cha mày",
+    "đ má", "đ mẹ", "đ bà",
+    "mày ngu", "tao chửi", "tao đánh",
+    "giết mày", "đánh chết mày",
 ]
 
-SHORT_TOXIC = {"dm", "đm", "cl", "cc", "vl", "vc", "xl", "đụ"}
+SHORT_TOXIC = {
+    "dm", "đm", "cl", "cc", "vl", "vc", "xl", "đụ",
+    "db", "đb", "dl", "đl", "ml", "md", "mđ",
+    "vcd", "vcđ", "vcb", "vcc",
+    "vkl", "vcl", "vll",
+    "cmm", "cmn", "đhs",
+    "đml", "dml",
+}
+
 
 TOXIC_KEYWORDS.sort(key=len, reverse=True)
 
