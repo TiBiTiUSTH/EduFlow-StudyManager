@@ -56,3 +56,7 @@ scratch/
 *.jpg
 sequence diagram/
 pdf_output.txt
+
+# Non-system files (slide, report)
+slide/
+report/
